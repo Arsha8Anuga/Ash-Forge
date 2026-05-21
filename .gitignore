@@ -1,0 +1,68 @@
+# =========================
+# Unity Generated
+# =========================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+UserSettings/
+MemoryCaptures/
+
+# =========================
+# Addressables
+# =========================
+ServerData/
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+.gradle/
+
+# =========================
+# Unity auto-generated
+# =========================
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Build files
+# =========================
+*.apk
+*.aab
+*.unitypackage
+
+# =========================
+# Local folders
+# =========================
+Saves/
+Captures/
+Recordings/
+Screenshots/
+
+# =========================
+# Keep Unity package files
+# =========================
+!Packages/manifest.json
+!Packages/packages-lock.json
