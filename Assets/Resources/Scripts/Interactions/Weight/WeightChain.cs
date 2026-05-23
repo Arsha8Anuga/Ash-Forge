@@ -3,6 +3,9 @@ using UnityEngine;
 public class WeightChain :
     MonoBehaviour
 {
+    [SerializeField]
+    private bool debugLog;
+
     public float TotalMass
     {
         get;
@@ -17,22 +20,20 @@ public class WeightChain :
     public void Recalculate()
     {
         Rigidbody[] bodies =
-            GetComponentsInChildren<
-                Rigidbody>();
+            GetComponentsInChildren<Rigidbody>();
 
         TotalMass = 0f;
 
-        foreach(
-            Rigidbody rb
-            in bodies)
+        foreach (Rigidbody rb in bodies)
         {
-            TotalMass +=
-                rb.mass;
+            TotalMass += rb.mass;
         }
 
-        Debug.Log(
-            "TotalMass: " +
-            TotalMass
-        );
+        if (debugLog)
+        {
+            Debug.Log(
+                "TotalMass: " + TotalMass
+            );
+        }
     }
 }

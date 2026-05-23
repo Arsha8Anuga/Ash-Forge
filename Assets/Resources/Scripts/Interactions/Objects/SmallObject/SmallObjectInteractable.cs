@@ -6,11 +6,8 @@ public class SmallObjectInteractable :
 {
     [Header("Movement")]
     public float followForce = 60f;
-
     public float damping = 12f;
-
     public float deadZoneRadius = 0.15f;
-
     public float maxVelocity = 20f;
 
     [Header("Rotation")]
@@ -28,11 +25,9 @@ public class SmallObjectInteractable :
     protected Transform grabPoint;
 
     protected XRHandInteractor currentHand;
-
     protected GrabMode currentMode;
 
     protected SmallObjectPhysics physics;
-
     protected SmallObjectAttach attach;
 
     public XRHandInteractor CurrentHand =>
@@ -51,6 +46,18 @@ public class SmallObjectInteractable :
     {
         base.Awake();
 
+        RebuildBehaviours();
+    }
+
+    public override void RefreshRigidbody()
+    {
+        base.RefreshRigidbody();
+
+        RebuildBehaviours();
+    }
+
+    void RebuildBehaviours()
+    {
         physics =
             new SmallObjectPhysics(
                 this,
@@ -75,27 +82,26 @@ public class SmallObjectInteractable :
             return false;
 
         ISnappable snap =
-            GetComponent<
-                ISnappable>();
+            GetComponent<ISnappable>();
 
-        if (
-            snap != null &&
-            snap.IsSnapped
-        )
+        if (snap != null &&
+            snap.IsSnapped)
         {
             snap.Unsnap();
         }
 
-        currentHand = hand;
+        RefreshRigidbody();
 
+        if (rb == null)
+            return false;
+
+        currentHand = hand;
         currentMode = mode;
 
         ResetPhysics();
 
         rb.useGravity = false;
-
         rb.drag = 0f;
-
         rb.WakeUp();
 
         return true;
@@ -107,14 +113,16 @@ public class SmallObjectInteractable :
         if (currentHand != hand)
             return;
 
-        currentHand = null;
+        RefreshRigidbody();
 
+        currentHand = null;
         currentMode = GrabMode.None;
 
+        if (rb == null)
+            return;
+
         rb.useGravity = true;
-
         rb.drag = 0f;
-
         rb.WakeUp();
     }
 
@@ -134,6 +142,11 @@ public class SmallObjectInteractable :
     void FixedUpdate()
     {
         if (!IsHeld)
+            return;
+
+        RefreshRigidbody();
+
+        if (rb == null)
             return;
 
         switch (currentMode)

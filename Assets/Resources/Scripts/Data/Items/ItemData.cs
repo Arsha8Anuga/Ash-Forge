@@ -7,30 +7,33 @@ using UnityEngine;
 public class ItemData :
     ScriptableObject
 {
-    [Header("Info")]
-    public string itemName;
+    [Header("Identity")]
+    public string itemId;
 
-    public ItemCategory category;
+    public string itemName;
 
     [TextArea]
     public string description;
+
+    [Header("Category")]
+    public ItemCategory category;
 
     [Header("Visual")]
     public Sprite icon;
 
     public GameObject prefab;
 
-    [Header("Stack")]
-    public int maxStack = 1;
-
     [Header("Physical")]
     public float mass = 1f;
+
+    [Header("Stack")]
+    public int maxStack = 1;
 
     [Header("Storage")]
     public bool canStore = true;
 
     public bool canBasket = true;
 
-    [Header("Processing")]
+    [Header("Tags")]
     public ProcessTag[] processTags;
 }

@@ -86,6 +86,9 @@ public class HeavyObjectInteractable :
 
     void BeginHold()
     {
+        if (rb == null)
+            return;
+
         rb.useGravity = false;
 
         rb.drag = 6f;
@@ -95,6 +98,9 @@ public class HeavyObjectInteractable :
 
     void EndHold()
     {
+        if (rb == null)
+            return;
+
         rb.useGravity = true;
 
         rb.drag = 0f;
@@ -113,6 +119,9 @@ public class HeavyObjectInteractable :
     void FixedUpdate()
     {
         if (!IsHeld)
+            return;
+
+        if (physics == null)
             return;
 
         physics.Tick(

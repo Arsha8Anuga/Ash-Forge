@@ -170,21 +170,18 @@ public class HeavyObjectPhysics :
     }
 
     float GetEffectiveWeight(
-        bool twoHanded)
+    bool twoHanded)
     {
         float mass =
             rb.mass;
 
-        WeightChain chain =
-            GetComponent<WeightChain>();
+        IWeightProvider provider =
+            GetComponent<IWeightProvider>();
 
-        if (chain != null)
+        if (provider != null)
         {
-            mass =
-                Mathf.Max(
-                    mass,
-                    chain.TotalMass
-                );
+            mass +=
+                provider.GetAdditionalWeight();
         }
 
         float weight =
@@ -195,11 +192,13 @@ public class HeavyObjectPhysics :
 
         if (twoHanded)
         {
-            weight *= twoHandWeightBonus;
+            weight *=
+                twoHandWeightBonus;
         }
         else
         {
-            weight *= oneHandWeightPenalty;
+            weight *=
+                oneHandWeightPenalty;
         }
 
         return Mathf.Max(

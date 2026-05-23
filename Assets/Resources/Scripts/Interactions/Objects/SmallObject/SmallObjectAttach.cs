@@ -3,7 +3,6 @@ using UnityEngine;
 public class SmallObjectAttach
 {
     private SmallObjectInteractable owner;
-
     private Rigidbody rb;
 
     public SmallObjectAttach(
@@ -11,7 +10,6 @@ public class SmallObjectAttach
         Rigidbody rb)
     {
         this.owner = owner;
-
         this.rb = rb;
     }
 
@@ -25,6 +23,7 @@ public class SmallObjectAttach
 
         Transform grabPoint =
             owner.InternalGrabPoint;
+
         if (grabPoint == null)
         {
             owner.transform.position =
@@ -32,29 +31,32 @@ public class SmallObjectAttach
 
             owner.transform.rotation =
                 hand.holdPoint.rotation;
+        }
+        else
+        {
+            Quaternion rotationOffset =
+                Quaternion.Inverse(
+                    grabPoint.rotation
+                ) *
+                owner.transform.rotation;
 
-            return;
+            owner.transform.rotation =
+                hand.holdPoint.rotation *
+                rotationOffset;
+
+            Vector3 positionOffset =
+                owner.transform.position -
+                grabPoint.position;
+
+            owner.transform.position =
+                hand.holdPoint.position +
+                positionOffset;
         }
 
-        Quaternion rotationOffset =
-            Quaternion.Inverse(
-                grabPoint.rotation
-            ) * owner.transform.rotation;
-
-        owner.transform.rotation =
-            hand.holdPoint.rotation *
-            rotationOffset;
-
-        Vector3 positionOffset =
-            owner.transform.position -
-            grabPoint.position;
-
-        owner.transform.position =
-            hand.holdPoint.position +
-            positionOffset;
+        if (rb == null)
+            return;
 
         rb.velocity = Vector3.zero;
-
         rb.angularVelocity = Vector3.zero;
     }
 }

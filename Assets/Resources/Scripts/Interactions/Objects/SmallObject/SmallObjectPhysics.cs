@@ -3,37 +3,35 @@ using UnityEngine;
 public class SmallObjectPhysics
 {
     private SmallObjectInteractable owner;
-
     private Rigidbody rb;
 
     public SmallObjectPhysics(
-     SmallObjectInteractable owner,
-     Rigidbody rb)
+        SmallObjectInteractable owner,
+        Rigidbody rb)
     {
-        this.owner =
-            owner;
-
-        this.rb =
-            rb;
+        this.owner = owner;
+        this.rb = rb;
     }
 
     public void Tick()
     {
+        if (rb == null)
+            return;
+
         XRHandInteractor hand =
             owner.CurrentHand;
 
-        if (rb.isKinematic)
+        if (hand == null)
             return;
 
-        if (hand == null)
+        if (rb.isKinematic)
             return;
 
         Vector3 target =
             hand.gravityPoint.position;
 
         Vector3 toTarget =
-            target -
-            rb.position;
+            target - rb.position;
 
         float distance =
             toTarget.magnitude;
@@ -41,42 +39,26 @@ public class SmallObjectPhysics
         if (distance <=
             owner.deadZoneRadius)
         {
-            rb.velocity *=
-                0.85f;
-
+            rb.velocity *= 0.85f;
             return;
         }
 
         Vector3 direction =
             toTarget.normalized;
 
-        WeightChain chain =
-            owner.GetComponentInParent<
-                WeightChain>();
-
         float mass =
             rb.mass;
 
-        if(
-            chain != null
-        )
-        {
-            Debug.Log(
-                "Chain: " +
-                chain.TotalMass
-            );
+        WeightChain chain =
+            owner.GetComponentInParent<WeightChain>();
 
+        if (chain != null)
+        {
             mass =
                 Mathf.Max(
                     rb.mass,
                     chain.TotalMass
                 );
-        }
-        else
-        {
-            Debug.Log(
-                "No chain found"
-            );
         }
 
         float weightFactor =
@@ -102,8 +84,7 @@ public class SmallObjectPhysics
             owner.damping;
 
         rb.AddForce(
-            springForce -
-            dampingForce,
+            springForce - dampingForce,
             ForceMode.Acceleration
         );
 
@@ -119,6 +100,9 @@ public class SmallObjectPhysics
     void Rotate(
         XRHandInteractor hand)
     {
+        if (rb == null)
+            return;
+
         Quaternion targetRotation =
             hand.holdPoint.rotation;
 
@@ -130,8 +114,6 @@ public class SmallObjectPhysics
                 Time.fixedDeltaTime
             );
 
-        rb.MoveRotation(
-            smoothed
-        );
+        rb.MoveRotation(smoothed);
     }
 }
