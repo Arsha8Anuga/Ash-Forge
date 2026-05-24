@@ -6,6 +6,12 @@ public class BasketContainer : MonoBehaviour
     [SerializeField]
     private BasketMassTracker massTracker;
 
+    [SerializeField]
+    private bool debugLog;
+
+    [SerializeField]
+    private Transform basketRoot;
+
     private readonly HashSet<PhysicalItem> items =
         new HashSet<PhysicalItem>();
 
@@ -19,6 +25,14 @@ public class BasketContainer : MonoBehaviour
             massTracker =
                 GetComponentInParent
                 <BasketMassTracker>();
+        }
+
+        if (basketRoot == null)
+        {
+            basketRoot =
+                massTracker != null
+                ? massTracker.transform
+                : transform.root;
         }
     }
 
@@ -60,6 +74,15 @@ public class BasketContainer : MonoBehaviour
         if (!item.CanBasket)
             return false;
 
+        if (basketRoot != null &&
+            (
+                item.transform == basketRoot ||
+                item.transform.IsChildOf(basketRoot)
+            ))
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -69,13 +92,18 @@ public class BasketContainer : MonoBehaviour
         if (!items.Add(item))
             return;
 
-        Rigidbody rb =
-            item.GetComponent<Rigidbody>();
-
-        if (rb != null &&
-            massTracker != null)
+        if (massTracker != null)
         {
-            massTracker.AddBody(rb);
+            massTracker.AddItem(item);
+        }
+
+        if (debugLog)
+        {
+            Debug.Log(
+                "[BasketContainer] Added: " +
+                item.ItemName,
+                this
+            );
         }
     }
 
@@ -85,13 +113,18 @@ public class BasketContainer : MonoBehaviour
         if (!items.Remove(item))
             return;
 
-        Rigidbody rb =
-            item.GetComponent<Rigidbody>();
-
-        if (rb != null &&
-            massTracker != null)
+        if (massTracker != null)
         {
-            massTracker.RemoveBody(rb);
+            massTracker.RemoveItem(item);
+        }
+
+        if (debugLog)
+        {
+            Debug.Log(
+                "[BasketContainer] Removed: " +
+                item.ItemName,
+                this
+            );
         }
     }
 }

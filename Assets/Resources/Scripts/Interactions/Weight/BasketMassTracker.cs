@@ -8,9 +8,11 @@ public class BasketMassTracker :
     [SerializeField]
     private Rigidbody basketBody;
 
-    private readonly HashSet<Rigidbody>
-        trackedBodies =
-        new HashSet<Rigidbody>();
+    [SerializeField]
+    private bool debugLog;
+
+    private readonly HashSet<PhysicalItem> trackedItems =
+        new HashSet<PhysicalItem>();
 
     public float TotalMass
     {
@@ -18,12 +20,15 @@ public class BasketMassTracker :
         private set;
     }
 
+    public int TrackedCount =>
+        trackedItems.Count;
+
     void Awake()
     {
         if (basketBody == null)
         {
             basketBody =
-                GetComponentInParent<Rigidbody>();
+                GetComponent<Rigidbody>();
         }
 
         Recalculate();
@@ -40,24 +45,26 @@ public class BasketMassTracker :
         );
     }
 
-    public void AddBody(
-        Rigidbody body)
+    public void AddItem(
+        PhysicalItem item)
     {
-        if (body == null)
+        if (item == null)
             return;
 
-        trackedBodies.Add(body);
+        if (!trackedItems.Add(item))
+            return;
 
         Recalculate();
     }
 
-    public void RemoveBody(
-        Rigidbody body)
+    public void RemoveItem(
+        PhysicalItem item)
     {
-        if (body == null)
+        if (item == null)
             return;
 
-        trackedBodies.Remove(body);
+        if (!trackedItems.Remove(item))
+            return;
 
         Recalculate();
     }
@@ -69,14 +76,44 @@ public class BasketMassTracker :
             ? basketBody.mass
             : 0f;
 
-        trackedBodies.RemoveWhere(
-            body => body == null
+        trackedItems.RemoveWhere(
+            item => item == null
         );
 
-        foreach (Rigidbody body
-            in trackedBodies)
+        foreach (PhysicalItem item
+            in trackedItems)
         {
-            TotalMass += body.mass;
+            TotalMass +=
+                GetItemMass(item);
         }
+
+        if (debugLog)
+        {
+            Debug.Log(
+                "[BasketMassTracker] TotalMass: " +
+                TotalMass +
+                " | Items: " +
+                trackedItems.Count,
+                this
+            );
+        }
+    }
+
+    float GetItemMass(
+        PhysicalItem item)
+    {
+        Rigidbody rb =
+            item.GetComponent<Rigidbody>();
+
+        if (rb != null)
+            return rb.mass;
+
+        if (item.ItemData != null)
+        {
+            return item.ItemData.mass *
+                item.Amount;
+        }
+
+        return 0f;
     }
 }

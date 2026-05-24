@@ -16,6 +16,8 @@ public class XRHandHolding
 
     public void Tick()
     {
+        ClearDestroyedHeldObject();
+
         HandleInput();
 
         ValidateDistance();
@@ -23,6 +25,8 @@ public class XRHandHolding
 
     void HandleInput()
     {
+        HandleActivate();
+
         HandlePhysicsGrab();
 
         HandleAttachGrab();
@@ -108,6 +112,16 @@ public class XRHandHolding
         if (HeldObject == null)
             return;
 
+        Object unityObject =
+            HeldObject as Object;
+
+        if (unityObject == null)
+        {
+            HeldObject = null;
+            CurrentMode = GrabMode.None;
+            return;
+        }
+
         Transform point =
             HeldObject.GetGrabPoint();
 
@@ -136,6 +150,57 @@ public class XRHandHolding
 
         HeldObject = null;
 
+        CurrentMode = GrabMode.None;
+    }
+
+    public void ForceSetHeld(
+        IGrabbable target,
+        GrabMode mode)
+    {
+        if (target == null)
+            return;
+
+        if (HeldObject != null)
+        {
+            Release();
+        }
+
+        HeldObject = target;
+        CurrentMode = mode;
+    }
+
+    void HandleActivate()
+    {
+        if (!hand.Input.TriggerDown)
+            return;
+
+        if (hand.Input.GripHeld)
+            return;
+
+        if (HeldObject != null)
+            return;
+
+        IActivatable activatable =
+            hand.Targeting.CurrentActivatable;
+
+        if (activatable == null)
+            return;
+
+        activatable.Activate(hand);
+    }
+
+    void ClearDestroyedHeldObject()
+    {
+        if (HeldObject == null)
+            return;
+
+        Object unityObject =
+            HeldObject as Object;
+
+        if (unityObject != null)
+            return;
+
+        HeldObject = null;
         CurrentMode = GrabMode.None;
     }
 }

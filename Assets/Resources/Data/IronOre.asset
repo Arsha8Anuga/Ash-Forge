@@ -17,7 +17,7 @@ MonoBehaviour:
   description: This is Iron Ore
   category: 0
   icon: {fileID: 0}
-  prefab: {fileID: 1921127101041486043, guid: e8aca4083170fcd409f189273a415b83, type: 3}
+  prefab: {fileID: 3965802507042151734, guid: 80383fafcdf3aba45b6a3233c8edc210, type: 3}
   mass: 2
   maxStack: 10
   canStore: 1
