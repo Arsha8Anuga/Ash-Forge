@@ -26,6 +26,12 @@ public class QueueItemStorage :
     public int Capacity =>
         capacity;
 
+    public int Remaining =>
+        Mathf.Max(
+            0,
+            capacity - CurrentCount
+        );
+
     public bool CanInput(
         PhysicalItem item)
     {
@@ -38,7 +44,10 @@ public class QueueItemStorage :
         if (!item.CanStore)
             return false;
 
-        if (CurrentCount + item.Amount >
+        if (item.StorageSize <= 0)
+            return false;
+
+        if (CurrentCount + item.StorageSize >
             capacity)
         {
             return false;
@@ -53,14 +62,16 @@ public class QueueItemStorage :
         if (!CanInput(item))
             return false;
 
-        queue.Enqueue(
+        StoredItemStack stack =
             new StoredItemStack(
                 item.ItemData,
-                item.Amount
-            )
-        );
+                item.Amount,
+                item.InstanceData
+            );
 
-        CurrentCount += item.Amount;
+        queue.Enqueue(stack);
+
+        CurrentCount += stack.StorageSize;
 
         if (debugLog)
         {
@@ -68,7 +79,13 @@ public class QueueItemStorage :
                 "[QueueStorage] Input: " +
                 item.ItemName +
                 " x" +
-                item.Amount,
+                item.Amount +
+                " | Size: " +
+                stack.StorageSize +
+                " | Used: " +
+                CurrentCount +
+                "/" +
+                capacity,
                 this
             );
         }
@@ -84,7 +101,9 @@ public class QueueItemStorage :
                 snap.Unsnap();
             }
 
-            Destroy(item.gameObject);
+            Destroy(
+                item.gameObject
+            );
         }
 
         return true;
@@ -111,7 +130,7 @@ public class QueueItemStorage :
             Mathf.Max(
                 0,
                 CurrentCount -
-                stack.Amount
+                stack.StorageSize
             );
 
         if (debugLog)
@@ -120,7 +139,13 @@ public class QueueItemStorage :
                 "[QueueStorage] Output: " +
                 stack.ItemData.itemName +
                 " x" +
-                stack.Amount,
+                stack.Amount +
+                " | Size: " +
+                stack.StorageSize +
+                " | Used: " +
+                CurrentCount +
+                "/" +
+                capacity,
                 this
             );
         }

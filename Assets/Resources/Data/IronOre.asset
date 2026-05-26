@@ -14,12 +14,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: iron_ore
   itemName: Iron Ore
-  description: This is Iron Ore
   category: 0
+  description: This is Iron Ore
   icon: {fileID: 0}
   prefab: {fileID: 3965802507042151734, guid: 80383fafcdf3aba45b6a3233c8edc210, type: 3}
-  mass: 2
   maxStack: 10
+  mass: 1
   canStore: 1
   canBasket: 1
-  processTags: 00000000
+  storageSize: 1
+  processTags: 0000000002000000
+  purity:
+    min: 35
+    max: 80
+  hardness:
+    min: 30
+    max: 70
+  durability:
+    min: 25
+    max: 65
+  conductivity:
+    min: 10
+    max: 35
+  stability:
+    min: 30
+    max: 75
+  defectResistance:
+    min: 20
+    max: 60

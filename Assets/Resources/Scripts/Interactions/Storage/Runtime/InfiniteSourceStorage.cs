@@ -48,7 +48,8 @@ public class InfiniteSourceStorage :
         stack =
             new StoredItemStack(
                 outputItem,
-                outputAmount
+                outputAmount,
+                outputItem.CreateInstance()
             );
 
         if (debugLog)

@@ -9,19 +9,31 @@ public class StoredItemStack
     [SerializeField]
     private int amount;
 
+    [SerializeField]
+    private ItemInstanceData instanceData;
+
     public ItemData ItemData =>
         itemData;
 
     public int Amount =>
         amount;
 
+    public ItemInstanceData InstanceData =>
+        instanceData;
+
     public bool IsValid =>
         itemData != null &&
         amount > 0;
 
+    public int StorageSize =>
+        itemData != null
+        ? itemData.storageSize * amount
+        : 0;
+
     public StoredItemStack(
         ItemData itemData,
-        int amount)
+        int amount,
+        ItemInstanceData instanceData)
     {
         this.itemData = itemData;
 
@@ -30,38 +42,8 @@ public class StoredItemStack
                 1,
                 amount
             );
-    }
 
-    public void Add(
-        int value)
-    {
-        if (value <= 0)
-            return;
-
-        amount += value;
-    }
-
-    public int Remove(
-        int value)
-    {
-        if (value <= 0)
-            return 0;
-
-        int removed =
-            Mathf.Min(
-                amount,
-                value
-            );
-
-        amount -= removed;
-
-        return removed;
-    }
-
-    public bool IsSameItem(
-        ItemData other)
-    {
-        return itemData != null &&
-            itemData == other;
+        this.instanceData =
+            instanceData;
     }
 }

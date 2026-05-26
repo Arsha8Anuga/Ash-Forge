@@ -1,6 +1,7 @@
 using UnityEngine;
 
-public class PhysicalItem : MonoBehaviour
+public class PhysicalItem :
+    MonoBehaviour
 {
     [SerializeField]
     private ItemData itemData;
@@ -8,11 +9,32 @@ public class PhysicalItem : MonoBehaviour
     [SerializeField]
     private int amount = 1;
 
+    [SerializeField]
+    private ItemInstanceData instanceData;
+
     public ItemData ItemData =>
         itemData;
 
+    public ItemInstanceData InstanceData =>
+        instanceData;
+
+    public ItemQualityStats Quality =>
+        instanceData != null
+        ? instanceData.Quality
+        : null;
+
     public int Amount =>
         amount;
+
+    public string ItemName =>
+        itemData != null
+        ? itemData.itemName
+        : name;
+    
+    public int StorageSize =>
+    itemData != null
+    ? itemData.storageSize * amount
+    : 0;
 
     public bool IsValid =>
         itemData != null;
@@ -25,87 +47,46 @@ public class PhysicalItem : MonoBehaviour
         itemData != null &&
         itemData.canBasket;
 
-    public string ItemName =>
-        itemData != null
-        ? itemData.itemName
-        : gameObject.name;
-
     void Awake()
     {
-        ApplyPhysicalData();
+        if (itemData != null &&
+            instanceData == null)
+        {
+            instanceData =
+                itemData.CreateInstance();
+        }
+
+        ApplyMass();
     }
 
     public void SetAmount(
         int value)
     {
         amount =
-            Mathf.Max(
-                1,
-                value
-            );
+            Mathf.Max(1, value);
     }
 
-    public void AddAmount(
-        int value)
+    public void SetItemData(
+        ItemData data)
     {
-        if (value <= 0)
-            return;
+        itemData = data;
 
-        amount += value;
-    }
-
-    public int RemoveAmount(
-        int value)
-    {
-        if (value <= 0)
-            return 0;
-
-        int removed =
-            Mathf.Min(
-                amount,
-                value
-            );
-
-        amount -= removed;
-
-        if (amount <= 0)
+        if (itemData != null)
         {
-            Destroy(gameObject);
+            instanceData =
+                itemData.CreateInstance();
         }
 
-        return removed;
+        ApplyMass();
     }
 
-    public bool IsSameItem(
-        PhysicalItem other)
+    public void SetInstanceData(
+        ItemInstanceData data)
     {
-        if (other == null)
-            return false;
-
-        return itemData != null &&
-            itemData == other.itemData;
+        instanceData = data;
     }
 
-    public bool HasProcessTag(
-        ProcessTag tag)
-    {
-        if (itemData == null ||
-            itemData.processTags == null)
-        {
-            return false;
-        }
-
-        foreach (ProcessTag processTag
-            in itemData.processTags)
-        {
-            if (processTag == tag)
-                return true;
-        }
-
-        return false;
-    }
-
-    void ApplyPhysicalData()
+    void ApplyMass()
     {
         if (itemData == null)
             return;
@@ -117,9 +98,17 @@ public class PhysicalItem : MonoBehaviour
             return;
 
         rb.mass =
-            Mathf.Max(
-                0.01f,
-                itemData.mass
-            );
+            itemData.mass *
+            amount;
+    }
+
+    public bool IsSameItem(
+        PhysicalItem other)
+    {
+        if (other == null)
+            return false;
+
+        return itemData != null &&
+            itemData == other.ItemData;
     }
 }

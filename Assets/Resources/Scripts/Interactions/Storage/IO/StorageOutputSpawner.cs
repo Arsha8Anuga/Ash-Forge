@@ -86,13 +86,21 @@ public class StorageOutputSpawner :
                 rotation
             );
 
+        Physics.SyncTransforms();
+
         PhysicalItem item =
             obj.GetComponent<PhysicalItem>();
+        
+        
 
         if (item != null)
         {
             item.SetAmount(
                 stack.Amount
+            );
+
+            item.SetInstanceData(
+                stack.InstanceData
             );
         }
 
