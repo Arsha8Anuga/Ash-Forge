@@ -16,6 +16,9 @@ public class SnapStackMode
     public bool TrySnap(
         SnappableObject snap)
     {
+        if (snap == null)
+            return false;
+
         if (!socket.CanAccept(snap))
             return false;
 
@@ -26,34 +29,104 @@ public class SnapStackMode
             );
 
         if (anchor == null)
+        {
+            socket.Log(
+                "Stack failed: no valid anchor"
+            );
+
             return false;
+        }
 
         if (!validator.IsAnchorCloseEnough(anchor))
+        {
+            socket.Log(
+                "Stack failed: anchor too far"
+            );
+
             return false;
+        }
 
         if (!socket.TryRegisterStack())
+        {
+            socket.Log(
+                "Stack failed: register failed"
+            );
+
             return false;
+        }
 
         if (socket.Current == null)
         {
-            socket.SetCurrent(snap);
-
-            socket.SetCurrentItem(
-                snap.GetComponent<PhysicalItem>()
-            );
-
-            snap.Snap(
-                socket,
+            return SnapFirstItem(
+                snap,
                 anchor
             );
         }
-        else
+
+        return StackAdditionalItem(
+            snap
+        );
+    }
+
+    bool SnapFirstItem(
+        SnappableObject snap,
+        SnapAnchor anchor)
+    {
+        socket.SetCurrent(snap);
+
+        socket.SetCurrentItem(
+            snap.GetComponent<PhysicalItem>()
+        );
+
+        snap.Snap(
+            socket,
+            anchor
+        );
+
+        if (!snap.IsSnapped)
         {
-            Object.Destroy(
-                snap.gameObject
+            socket.Clear(snap);
+
+            socket.Log(
+                "Stack failed: first item snap failed"
             );
+
+            return false;
         }
+
+        socket.Log(
+            "Stack first item snapped"
+        );
 
         return true;
     }
+
+    bool StackAdditionalItem(
+        SnappableObject snap)
+    {
+        PhysicalItem item =
+            snap.GetComponent<PhysicalItem>();
+
+        if (item == null)
+        {
+            socket.Log(
+                "Stack failed: no PhysicalItem"
+            );
+
+            return false;
+        }
+
+        socket.Log(
+            "Stack additional item: " +
+            item.ItemName
+        );
+
+        Object.Destroy(
+            snap.gameObject
+        );
+
+        return true;
+    }
+
+    
 }

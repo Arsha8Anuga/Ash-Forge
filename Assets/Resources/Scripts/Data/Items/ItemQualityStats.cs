@@ -47,4 +47,24 @@ public class ItemQualityStats
             defectResistance = defectResistance
         };
     }
+
+    public void Clamp()
+    {
+        purity = ClampValue(purity);
+        hardness = ClampValue(hardness);
+        durability = ClampValue(durability);
+        conductivity = ClampValue(conductivity);
+        stability = ClampValue(stability);
+        defectResistance = ClampValue(defectResistance);
+    }
+
+    static float ClampValue(
+        float value)
+    {
+        return Mathf.Clamp(
+            value,
+            0f,
+            100f
+        );
+    }
 }

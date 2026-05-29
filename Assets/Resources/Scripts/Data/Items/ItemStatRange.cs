@@ -4,17 +4,29 @@ using UnityEngine;
 [Serializable]
 public class ItemStatRange
 {
-    [Range(0f, 100f)]
-    public float min = 40f;
+    [SerializeField]
+    private float min = 40f;
 
-    [Range(0f, 100f)]
-    public float max = 70f;
+    [SerializeField]
+    private float max = 70f;
 
     public float Roll()
     {
+        float low =
+            Mathf.Min(
+                min,
+                max
+            );
+
+        float high =
+            Mathf.Max(
+                min,
+                max
+            );
+
         return UnityEngine.Random.Range(
-            min,
-            max
+            low,
+            high
         );
     }
 }

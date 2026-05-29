@@ -30,11 +30,11 @@ public class PhysicalItem :
         itemData != null
         ? itemData.itemName
         : name;
-    
+
     public int StorageSize =>
-    itemData != null
-    ? itemData.storageSize * amount
-    : 0;
+        itemData != null
+        ? itemData.storageSize * amount
+        : 0;
 
     public bool IsValid =>
         itemData != null;
@@ -49,11 +49,35 @@ public class PhysicalItem :
 
     void Awake()
     {
-        if (itemData != null &&
-            instanceData == null)
+        EnsureInstanceData();
+
+        ApplyMass();
+    }
+
+    public void Initialize(
+        ItemData data,
+        int amount,
+        ItemInstanceData instance)
+    {
+        itemData = data;
+
+        this.amount =
+            Mathf.Max(
+                1,
+                amount
+            );
+
+        if (instance != null)
         {
             instanceData =
-                itemData.CreateInstance();
+                instance.Clone();
+        }
+        else
+        {
+            instanceData =
+                itemData != null
+                ? itemData.CreateInstance()
+                : null;
         }
 
         ApplyMass();
@@ -63,7 +87,12 @@ public class PhysicalItem :
         int value)
     {
         amount =
-            Mathf.Max(1, value);
+            Mathf.Max(
+                1,
+                value
+            );
+
+        ApplyMass();
     }
 
     public void SetItemData(
@@ -71,11 +100,10 @@ public class PhysicalItem :
     {
         itemData = data;
 
-        if (itemData != null)
-        {
-            instanceData =
-                itemData.CreateInstance();
-        }
+        instanceData =
+            itemData != null
+            ? itemData.CreateInstance()
+            : null;
 
         ApplyMass();
     }
@@ -83,7 +111,22 @@ public class PhysicalItem :
     public void SetInstanceData(
         ItemInstanceData data)
     {
-        instanceData = data;
+        instanceData =
+            data != null
+            ? data.Clone()
+            : null;
+    }
+
+    public void EnsureInstanceData()
+    {
+        if (instanceData != null)
+            return;
+
+        if (itemData == null)
+            return;
+
+        instanceData =
+            itemData.CreateInstance();
     }
 
     void ApplyMass()
@@ -98,8 +141,10 @@ public class PhysicalItem :
             return;
 
         rb.mass =
-            itemData.mass *
-            amount;
+            Mathf.Max(
+                0.01f,
+                itemData.mass * amount
+            );
     }
 
     public bool IsSameItem(

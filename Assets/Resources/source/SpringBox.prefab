@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 919354098025671579}
   - component: {fileID: 8768489546823994939}
   - component: {fileID: 1326753414708535446}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SpringBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}

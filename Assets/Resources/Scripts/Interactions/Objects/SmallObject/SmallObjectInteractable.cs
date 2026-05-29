@@ -98,6 +98,14 @@ public class SmallObjectInteractable :
         currentHand = hand;
         currentMode = mode;
 
+        WorkstationTool tool =
+            GetComponent<WorkstationTool>();
+
+        if (tool != null)
+        {
+            tool.SetHeldBy(hand);
+        }
+
         ResetPhysics();
 
         rb.useGravity = false;
@@ -113,16 +121,22 @@ public class SmallObjectInteractable :
         if (currentHand != hand)
             return;
 
-        RefreshRigidbody();
+        WorkstationTool tool =
+            GetComponent<WorkstationTool>();
+
+        if (tool != null)
+        {
+            tool.ClearHeldBy(hand);
+        }
 
         currentHand = null;
+
         currentMode = GrabMode.None;
 
-        if (rb == null)
-            return;
-
         rb.useGravity = true;
+
         rb.drag = 0f;
+
         rb.WakeUp();
     }
 

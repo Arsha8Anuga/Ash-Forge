@@ -44,6 +44,27 @@ public class StoredItemStack
             );
 
         this.instanceData =
-            instanceData;
+            instanceData != null
+            ? instanceData.Clone()
+            : null;
+    }
+
+    public StoredItemStack Clone()
+    {
+        return new StoredItemStack(
+            itemData,
+            amount,
+            instanceData
+        );
+    }
+
+    public StoredItemStack WithAmount(
+        int newAmount)
+    {
+        return new StoredItemStack(
+            itemData,
+            newAmount,
+            instanceData
+        );
     }
 }

@@ -22,9 +22,11 @@ public class ItemData :
     public GameObject prefab;
 
     [Header("Stack")]
+    [Min(1)]
     public int maxStack = 1;
 
     [Header("Physical")]
+    [Min(0.01f)]
     public float mass = 1f;
 
     [Header("Storage")]
@@ -32,7 +34,15 @@ public class ItemData :
 
     public bool canBasket = true;
 
+    [Min(1)]
     public int storageSize = 1;
+
+    [Header("Reverse")]
+    [Range(0f, 1f)]
+    public float partialReverseReturnRatio = 0.5f;
+
+    [Range(0f, 100f)]
+    public float partialReverseQualityLoss = 10f;
 
     [Header("Processing")]
     public ProcessTag[] processTags;
@@ -61,14 +71,57 @@ public class ItemData :
         ItemQualityStats stats =
             new ItemQualityStats
             {
-                purity = purity.Roll(),
-                hardness = hardness.Roll(),
-                durability = durability.Roll(),
-                conductivity = conductivity.Roll(),
-                stability = stability.Roll(),
-                defectResistance = defectResistance.Roll()
+                purity =
+                    purity != null
+                    ? purity.Roll()
+                    : 50f,
+
+                hardness =
+                    hardness != null
+                    ? hardness.Roll()
+                    : 50f,
+
+                durability =
+                    durability != null
+                    ? durability.Roll()
+                    : 50f,
+
+                conductivity =
+                    conductivity != null
+                    ? conductivity.Roll()
+                    : 50f,
+
+                stability =
+                    stability != null
+                    ? stability.Roll()
+                    : 50f,
+
+                defectResistance =
+                    defectResistance != null
+                    ? defectResistance.Roll()
+                    : 50f
             };
 
-        return new ItemInstanceData(stats);
+        stats.Clamp();
+
+        return new ItemInstanceData(
+            stats
+        );
+    }
+
+    public bool HasProcessTag(
+        ProcessTag tag)
+    {
+        if (processTags == null)
+            return false;
+
+        foreach (ProcessTag processTag
+            in processTags)
+        {
+            if (processTag == tag)
+                return true;
+        }
+
+        return false;
     }
 }

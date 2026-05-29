@@ -28,7 +28,8 @@ public class SnappableObject :
     private SnapCompoundHandler compoundHandler;
     private SnapPostProcessor postProcessor;
 
-    public SnapTypeData Type => type;
+    public SnapTypeData Type =>
+        type;
 
     public bool IsSnapped =>
         state.IsSnapped;
@@ -44,20 +45,31 @@ public class SnappableObject :
 
     void Awake()
     {
-        state = new SnapState();
-        cooldown = new SnapCooldown();
+        state =
+            new SnapState();
+
+        cooldown =
+            new SnapCooldown();
 
         anchorResolver =
-            new SnapAnchorResolver(transform);
+            new SnapAnchorResolver(
+                transform
+            );
 
         transformHandler =
-            new SnapTransformHandler(transform);
+            new SnapTransformHandler(
+                transform
+            );
 
         physicsHandler =
-            new SnapPhysicsHandler(gameObject);
+            new SnapPhysicsHandler(
+                gameObject
+            );
 
         compoundHandler =
-            new SnapCompoundHandler(gameObject);
+            new SnapCompoundHandler(
+                gameObject
+            );
 
         postProcessor =
             new SnapPostProcessor(
@@ -70,7 +82,9 @@ public class SnappableObject :
     public void BlockSnapFor(
         float duration)
     {
-        cooldown.BlockFor(duration);
+        cooldown.BlockFor(
+            duration
+        );
     }
 
     public SnapAnchor GetBestAnchor(
@@ -133,9 +147,13 @@ public class SnappableObject :
         );
 
         if (useCompoundSnap)
+        {
             compoundHandler.RemoveRigidbody();
+        }
         else
+        {
             physicsHandler.StopPhysics();
+        }
 
         transformHandler.AttachAndAlign(
             socket,
@@ -173,14 +191,50 @@ public class SnappableObject :
         transformHandler.Detach();
 
         if (useCompoundSnap)
+        {
             compoundHandler.RestoreRigidbody();
+        }
         else
+        {
             physicsHandler.ResumePhysics();
+        }
 
         postProcessor.OnUnsnapped();
 
         state.Clear();
 
-        cooldown.BlockFor(0.15f);
+        cooldown.BlockFor(
+            0.15f
+        );
+    }
+
+    public void ForceUnsnapWithoutSocketClear()
+    {
+        if (!IsSnapped &&
+            !IsSnapping)
+        {
+            return;
+        }
+
+        state.BeginUnsnap();
+
+        transformHandler.Detach();
+
+        if (useCompoundSnap)
+        {
+            compoundHandler.RestoreRigidbody();
+        }
+        else
+        {
+            physicsHandler.ResumePhysics();
+        }
+
+        postProcessor.OnUnsnapped();
+
+        state.Clear();
+
+        cooldown.BlockFor(
+            0.15f
+        );
     }
 }

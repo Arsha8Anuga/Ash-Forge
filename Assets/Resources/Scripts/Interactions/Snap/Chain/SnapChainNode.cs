@@ -37,10 +37,16 @@ public class SnapChainNode : MonoBehaviour
 
         int count = 1;
 
-        foreach (SnapChainNode child in children)
+        foreach (SnapChainNode child
+            in children)
         {
             if (child != null)
-                count += child.CountSubtreeSafe(visited);
+            {
+                count +=
+                    child.CountSubtreeSafe(
+                        visited
+                    );
+            }
         }
 
         return count;
@@ -110,6 +116,107 @@ public class SnapChainNode : MonoBehaviour
         RecalculateRoot(this);
     }
 
+    public void DetachFromParentOnly()
+    {
+        SnapChainNode oldRoot =
+            GetRootNode();
+
+        if (Parent != null)
+        {
+            Parent.children.Remove(this);
+        }
+
+        Parent = null;
+
+        if (localHost != null)
+        {
+            SetRootRecursive(
+                localHost,
+                new HashSet<SnapChainNode>()
+            );
+        }
+
+        RecalculateRoot(oldRoot);
+        RecalculateRoot(this);
+    }
+
+    public void DetachChildrenBeforeDestroy()
+    {
+        if (children.Count <= 0)
+            return;
+
+        List<SnapChainNode> copy =
+            new List<SnapChainNode>(
+                children
+            );
+
+        children.Clear();
+
+        foreach (SnapChainNode child
+            in copy)
+        {
+            if (child == null)
+                continue;
+
+            child.Parent = null;
+
+            if (child.localHost != null)
+            {
+                child.SetRootRecursive(
+                    child.localHost,
+                    new HashSet<SnapChainNode>()
+                );
+            }
+
+            child.transform.SetParent(
+                null,
+                true
+            );
+
+            SnappableObject snap =
+                child.GetComponent
+                <SnappableObject>();
+
+            if (snap != null &&
+                snap.IsSnapped)
+            {
+                snap.ForceUnsnapWithoutSocketClear();
+            }
+
+            Rigidbody rb =
+                child.GetComponent
+                <Rigidbody>();
+
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+
+                rb.useGravity = true;
+
+                rb.WakeUp();
+            }
+
+            RecalculateRoot(child);
+        }
+    }
+
+    public int GetDepth()
+    {
+        int depth = 0;
+
+        SnapChainNode node =
+            Parent;
+
+        while (node != null)
+        {
+            depth++;
+
+            node = node.Parent;
+        }
+
+        return depth;
+    }
+
     bool IsAncestorOf(
         SnapChainNode possibleChild)
     {
@@ -147,7 +254,8 @@ public class SnapChainNode : MonoBehaviour
         if (localHost != null)
             localHost.SetRoot(root);
 
-        foreach (SnapChainNode child in children)
+        foreach (SnapChainNode child
+            in children)
         {
             if (child != null)
             {
