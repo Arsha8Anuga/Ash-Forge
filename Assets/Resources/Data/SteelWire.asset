@@ -15,30 +15,32 @@ MonoBehaviour:
   itemId: SteelWire_Item
   itemName: Steel Wire
   category: 2
-  description: 
+  description: ' A thin processed steel wire used for mechanical parts.'
   icon: {fileID: 0}
   prefab: {fileID: 3534514155728338032, guid: e3f285cf6f9965944a496d3f370ddd75, type: 3}
-  maxStack: 1
-  mass: 0.5
+  maxStack: 10
+  mass: 0.15
   canStore: 1
   canBasket: 1
   storageSize: 1
+  partialReverseReturnRatio: 0.5
+  partialReverseQualityLoss: 8
   processTags: 03000000
   purity:
-    min: 40
-    max: 70
+    min: 55
+    max: 85
   hardness:
-    min: 40
-    max: 70
+    min: 45
+    max: 75
   durability:
-    min: 40
-    max: 70
+    min: 45
+    max: 80
   conductivity:
-    min: 40
-    max: 70
+    min: 20
+    max: 45
   stability:
-    min: 40
-    max: 70
+    min: 50
+    max: 85
   defectResistance:
-    min: 40
-    max: 70
+    min: 45
+    max: 80
