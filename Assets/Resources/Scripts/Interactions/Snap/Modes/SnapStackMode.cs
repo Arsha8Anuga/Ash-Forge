@@ -37,7 +37,7 @@ public class SnapStackMode
             return false;
         }
 
-        if (!validator.IsAnchorCloseEnough(anchor))
+        if (!validator.IsAnchorValidForSocket(anchor))
         {
             socket.Log(
                 "Stack failed: anchor too far"

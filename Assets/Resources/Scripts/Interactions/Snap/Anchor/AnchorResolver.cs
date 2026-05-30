@@ -2,33 +2,24 @@ using UnityEngine;
 
 public class SnapAnchorResolver
 {
-    private readonly Transform owner;
-
-    private SnapAnchor[] anchors;
+    private readonly Transform root;
 
     public SnapAnchorResolver(
-        Transform owner)
+        Transform root)
     {
-        this.owner = owner;
-        Resolve();
-    }
-
-    public void Resolve()
-    {
-        anchors =
-            owner.GetComponentsInChildren
-            <SnapAnchor>();
+        this.root = root;
     }
 
     public SnapAnchor GetBestAnchor(
         string[] acceptedTags,
         Vector3 socketPosition)
     {
-        if (anchors == null ||
-            anchors.Length == 0)
-        {
-            Resolve();
-        }
+        if (root == null)
+            return null;
+
+        SnapAnchor[] anchors =
+            root.GetComponentsInChildren
+            <SnapAnchor>();
 
         SnapAnchor best = null;
         float bestDistance = float.MaxValue;
@@ -43,7 +34,7 @@ public class SnapAnchorResolver
 
             float distance =
                 Vector3.Distance(
-                    anchor.transform.position,
+                    anchor.Point.position,
                     socketPosition
                 );
 

@@ -3,39 +3,60 @@ using UnityEngine;
 public class SnapSocket : MonoBehaviour
 {
     [Header("Mode")]
-    [SerializeField] private bool useChainMode;
+    [SerializeField]
+    private bool useChainMode;
 
     [Header("Host")]
-    [SerializeField] private SnapHost host;
+    [SerializeField]
+    private SnapHost host;
 
     [Header("Chain")]
-    [SerializeField] private SnapChainNode ownerNode;
+    [SerializeField]
+    private SnapChainNode ownerNode;
 
     [Header("Point")]
-    [SerializeField] private Transform point;
+    [SerializeField]
+    private Transform point;
+
+    [Header("Socket Area")]
+    [SerializeField]
+    private Collider socketArea;
 
     [Header("Parenting")]
-    [SerializeField] private Transform attachParent;
+    [SerializeField]
+    private Transform attachParent;
 
     [Header("Filter")]
-    [SerializeField] private SnapTypeData[] acceptedTypes;
+    [SerializeField]
+    private SnapTypeData[] acceptedTypes;
 
     [Header("Anchor")]
-    [SerializeField] private string[] acceptedAnchorTags;
+    [SerializeField]
+    private string[] acceptedAnchorTags;
 
-    [SerializeField] private float surfaceOffset;
+    [SerializeField]
+    private float surfaceOffset;
 
     [Header("Stack")]
-    [SerializeField] private int maxStack = 1;
+    [SerializeField]
+    private int maxStack = 1;
 
     [Header("Snap Conditions")]
-    [SerializeField] private float maxSnapVelocity = 1f;
-    [SerializeField] private float maxAnchorSnapDistance = 0.25f;
-    [SerializeField] private float snapDwellTime = 0.08f;
-    [SerializeField] private float snapCooldown = 0.1f;
+    [SerializeField]
+    private float maxSnapVelocity = 1f;
+
+    [SerializeField]
+    private float maxAnchorSnapDistance = 0.25f;
+
+    [SerializeField]
+    private float snapDwellTime = 0.08f;
+
+    [SerializeField]
+    private float snapCooldown = 0.1f;
 
     [Header("Debug")]
-    [SerializeField] private bool debugLog;
+    [SerializeField]
+    private bool debugLog;
 
     private SnappableObject current;
     private PhysicalItem currentItem;
@@ -48,6 +69,9 @@ public class SnapSocket : MonoBehaviour
     private SnapSocketGizmos gizmos;
 
     public Transform Point => point;
+
+    public Collider SocketArea =>
+        socketArea;
 
     public Transform AttachParent =>
         attachParent != null
@@ -87,6 +111,9 @@ public class SnapSocket : MonoBehaviour
     public float MaxAnchorSnapDistance =>
         maxAnchorSnapDistance;
 
+    public float MaxAnchorDistance =>
+        maxAnchorSnapDistance;
+
     public float SnapDwellTime =>
         snapDwellTime;
 
@@ -110,6 +137,12 @@ public class SnapSocket : MonoBehaviour
                 this
             );
         }
+
+        if (socketArea == null)
+            socketArea = GetComponent<Collider>();
+
+        if (socketArea != null)
+            socketArea.isTrigger = true;
 
         if (host == null)
             host = GetComponentInParent<SnapHost>();
@@ -241,7 +274,8 @@ public class SnapSocket : MonoBehaviour
             return GetComponentsInParent<Collider>();
         }
 
-        return ownerNode.GetComponentsInChildren<Collider>();
+        return ownerNode
+            .GetComponentsInChildren<Collider>();
     }
 
     public void Clear(
@@ -293,7 +327,8 @@ public class SnapSocket : MonoBehaviour
         }
     }
 
-    public void Log(string message)
+    public void Log(
+        string message)
     {
         if (!debugLog)
             return;
@@ -310,7 +345,8 @@ public class SnapSocket : MonoBehaviour
     void OnDrawGizmos()
     {
         if (gizmos == null)
-            gizmos = new SnapSocketGizmos(this);
+            gizmos =
+                new SnapSocketGizmos(this);
 
         gizmos.Draw();
     }

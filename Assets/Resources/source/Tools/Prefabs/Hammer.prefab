@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2520333724194347311}
   - component: {fileID: 8397552326222053738}
   - component: {fileID: 1870615271120278644}
+  - component: {fileID: 2543067775523752578}
   m_Layer: 13
   m_Name: Anchor_A
   m_TagString: Untagged
@@ -66,8 +67,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bd852852c1653c43831168af5c5587d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  point: {fileID: 2520333724194347311}
+  area: {fileID: 2543067775523752578}
   anchorTags:
   - Hammer_Anchor
+--- !u!114 &2543067775523752578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3256735689322787586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17e046ee04e003a4fb0b1d8af87e4bb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  areaCollider: {fileID: 8397552326222053738}
 --- !u!1 &5595874269978070435
 GameObject:
   m_ObjectHideFlags: 0
@@ -199,12 +215,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 0de5ce46f68e65c49a48e1cf3856f68c,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.71
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0de5ce46f68e65c49a48e1cf3856f68c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.032
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0de5ce46f68e65c49a48e1cf3856f68c,
         type: 3}
@@ -417,12 +433,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   followForce: 60
   damping: 12
-  deadZoneRadius: 0.15
+  deadZoneRadius: 0.01
   maxVelocity: 20
   rotationSpeed: 15
   weightMultiplier: 2
   supportedModes: -1
-  grabPoint: {fileID: 0}
+  grabPoint: {fileID: 8458649735879353562}
 --- !u!114 &8943533325293215140
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,7 +454,7 @@ MonoBehaviour:
   toolType: 1
   requireAttachMode: 1
   requireTriggerForActive: 0
-  rb: {fileID: 0}
+  rb: {fileID: 696864050777888584}
   interactable: {fileID: 4772237664572843862}
   debugLog: 0
 --- !u!114 &7396711711911413996
@@ -479,3 +495,4 @@ MonoBehaviour:
       conductivity: 50
       stability: 50
       defectResistance: 50
+    origins: []

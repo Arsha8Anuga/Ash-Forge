@@ -3,10 +3,39 @@ using UnityEngine;
 public class SnapAnchor : MonoBehaviour
 {
     [SerializeField]
+    private Transform point;
+
+    [SerializeField]
+    private SnapAnchorArea area;
+
+    [SerializeField]
     private string[] anchorTags;
+
+    public Transform Point =>
+        point != null
+        ? point
+        : transform;
+
+    public SnapAnchorArea Area =>
+        area;
 
     public string[] AnchorTags =>
         anchorTags;
+
+    void Awake()
+    {
+        if (point == null)
+            point = transform;
+
+        if (area == null)
+            area = GetComponentInChildren<SnapAnchorArea>();
+    }
+
+    void Reset()
+    {
+        point = transform;
+        area = GetComponentInChildren<SnapAnchorArea>();
+    }
 
     public bool HasAnyTag(
         string[] acceptedTags)
@@ -23,14 +52,12 @@ public class SnapAnchor : MonoBehaviour
             return false;
         }
 
-        foreach (string accepted
-            in acceptedTags)
+        foreach (string accepted in acceptedTags)
         {
             if (string.IsNullOrEmpty(accepted))
                 continue;
 
-            foreach (string tag
-                in anchorTags)
+            foreach (string tag in anchorTags)
             {
                 if (string.IsNullOrEmpty(tag))
                     continue;
@@ -41,19 +68,5 @@ public class SnapAnchor : MonoBehaviour
         }
 
         return false;
-    }
-
-    void OnDrawGizmos()
-    {
-        Gizmos.DrawSphere(
-            transform.position,
-            0.035f
-        );
-
-        Gizmos.DrawLine(
-            transform.position,
-            transform.position +
-            transform.up * 0.15f
-        );
     }
 }
