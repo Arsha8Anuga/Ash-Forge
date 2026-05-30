@@ -1,11 +1,12 @@
 public enum WeaponPartRole
 {
-    Barrel,
     Receiver,
-    Magazine,
+    Barrel,
+    TriggerGroup,
     Stock,
     Grip,
+    Spring,
+    Bolt,
     Sight,
-    Muzzle,
-    InternalMechanism
+    Other
 }

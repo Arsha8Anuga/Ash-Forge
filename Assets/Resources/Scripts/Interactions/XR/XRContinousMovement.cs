@@ -17,20 +17,89 @@ public class XRContinuousMovement : MonoBehaviour
     private CharacterController character;
     private XROrigin xrOrigin;
 
+    private bool referencesValid;
+
+    private bool missingReferencesLogged;
+
     private float verticalVelocity;
 
     void Start()
     {
-        character = GetComponent<CharacterController>();
-        xrOrigin = GetComponent<XROrigin>();
+        ResolveReferences();
+
+        referencesValid =
+            HasRequiredReferences();
+
+        if (!referencesValid)
+        {
+            LogMissingReferences();
+        }
     }
 
     void Update()
     {
+        if (!referencesValid)
+        {
+            ResolveReferences();
+
+            referencesValid =
+                HasRequiredReferences();
+
+            if (!referencesValid)
+            {
+                LogMissingReferences();
+                return;
+            }
+        }
+
         UpdateCharacterController();
 
         MovePlayer();
+
         RotatePlayer();
+    }
+
+    void ResolveReferences()
+    {
+        if (character == null)
+        {
+            character =
+                GetComponent<CharacterController>();
+        }
+
+        if (xrOrigin == null)
+        {
+            xrOrigin =
+                GetComponent<XROrigin>();
+        }
+    }
+
+    bool HasRequiredReferences()
+    {
+        if (character == null)
+            return false;
+
+        if (xrOrigin == null)
+            return false;
+
+        if (xrOrigin.Camera == null)
+            return false;
+
+        return true;
+    }
+
+    void LogMissingReferences()
+    {
+        if (missingReferencesLogged)
+            return;
+
+        missingReferencesLogged = true;
+
+        Debug.LogError(
+            "[XRContinuousMovement] Missing required reference. " +
+            "Required: CharacterController, XROrigin, and XROrigin Camera.",
+            this
+        );
     }
 
     void UpdateCharacterController()
@@ -56,8 +125,17 @@ public class XRContinuousMovement : MonoBehaviour
 
     void MovePlayer()
     {
+        if (character == null ||
+            xrOrigin == null ||
+            xrOrigin.Camera == null)
+        {
+            return;
+        }
+
         Vector2 input =
-            moveAction.action.ReadValue<Vector2>();
+            moveAction.action != null
+            ? moveAction.action.ReadValue<Vector2>()
+            : Vector2.zero;
 
         Transform cameraTransform =
             xrOrigin.Camera.transform;
@@ -98,6 +176,9 @@ public class XRContinuousMovement : MonoBehaviour
 
     void RotatePlayer()
     {
+        if (turnAction.action == null)
+            return;
+
         float turn =
             turnAction.action
             .ReadValue<Vector2>().x;

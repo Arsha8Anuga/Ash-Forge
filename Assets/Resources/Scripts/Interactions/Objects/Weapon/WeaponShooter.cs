@@ -12,6 +12,16 @@ public class WeaponShooter :
 
     public void Fire()
     {
+        if (muzzlePoint == null)
+        {
+            Debug.LogWarning(
+                "[WeaponShooter] Cannot fire. Muzzle point is missing.",
+                this
+            );
+
+            return;
+        }
+
         Debug.Log(
             $"{name} Fired"
         );

@@ -4,355 +4,401 @@ using UnityEngine;
 public class WorkstationOutputSpawner :
     MonoBehaviour
 {
-    [Header("Fallback Point")]
+    [Header("Spawn")]
     [SerializeField]
-    private Transform outputPoint;
-
-    [Header("Optional Area")]
-    [SerializeField]
-    private BoxCollider outputArea;
-
-    [Header("Spawn Layout")]
-    [SerializeField]
-    private float spacing = 0.25f;
+    private StorageSpawnArea spawnArea;
 
     [SerializeField]
-    private float spawnHeightOffset = 0.05f;
+    private bool spawnAmountAsSeparateObjects = true;
+
+    [Header("Routing")]
+    [SerializeField]
+    private WorkstationOutputRoute[] routes;
+
+    [Header("Extension")]
+    [SerializeField]
+    private MonoBehaviour outputBuilderBehaviour;
 
     [SerializeField]
-    private int columns = 3;
-
-    [Header("Physics")]
-    [SerializeField]
-    private bool resetRigidbody = true;
-
-    [SerializeField]
-    private bool forcePhysicalAmountToOne = true;
+    private MonoBehaviour postProcessorBehaviour;
 
     [Header("Debug")]
     [SerializeField]
-    private bool debugLog;
+    protected bool debugLog;
+
+    private IWorkstationOutputBuilder outputBuilder;
+
+    private IWorkstationSpawnPostProcessor
+        postProcessor;
 
     void Awake()
     {
-        if (outputPoint == null)
-            outputPoint = transform;
-
-        if (outputArea == null)
+        if (spawnArea == null)
         {
-            outputArea =
-                GetComponent<BoxCollider>();
+            spawnArea =
+                GetComponentInChildren
+                <StorageSpawnArea>();
         }
-    }
 
-    public void Spawn(
-        WorkstationRecipeData recipe)
-    {
-        Spawn(
-            recipe,
-            null
-        );
+        outputBuilder =
+            outputBuilderBehaviour
+            as IWorkstationOutputBuilder;
+
+        if (outputBuilder == null)
+        {
+            outputBuilder =
+                GetComponent
+                <IWorkstationOutputBuilder>();
+        }
+
+        postProcessor =
+            postProcessorBehaviour
+            as IWorkstationSpawnPostProcessor;
+
+        if (postProcessor == null)
+        {
+            postProcessor =
+                GetComponent
+                <IWorkstationSpawnPostProcessor>();
+        }
     }
 
     public void Spawn(
         WorkstationRecipeData recipe,
         List<PhysicalItem> inputItems)
     {
-        if (recipe == null ||
-            recipe.outputs == null ||
-            recipe.outputs.Length == 0)
+        if (recipe == null)
         {
-            Log("No output found.");
+            Log("Spawn failed: recipe null.");
             return;
         }
 
-        int spawnIndex = 0;
+        List<StoredItemStack> outputs =
+            BuildOutputStacks(
+                recipe,
+                inputItems
+            );
+
+        if (outputs == null ||
+            outputs.Count <= 0)
+        {
+            Log("No outputs.");
+            return;
+        }
+
+        foreach (StoredItemStack stack
+            in outputs)
+        {
+            if (stack == null ||
+                !stack.IsValid ||
+                stack.ItemData == null)
+            {
+                Log("Skipped invalid output stack.");
+                continue;
+            }
+
+            RouteOutput(
+                stack,
+                recipe,
+                inputItems
+            );
+        }
+    }
+
+    List<StoredItemStack> BuildOutputStacks(
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
+    {
+        if (outputBuilder != null &&
+            outputBuilder.CanBuildOutputs(
+                recipe,
+                inputItems))
+        {
+            return outputBuilder.BuildOutputs(
+                recipe,
+                inputItems
+            );
+        }
+
+        return BuildDefaultOutputs(recipe);
+    }
+
+    List<StoredItemStack> BuildDefaultOutputs(
+        WorkstationRecipeData recipe)
+    {
+        List<StoredItemStack> result =
+            new List<StoredItemStack>();
+
+        if (recipe == null ||
+            recipe.outputs == null)
+        {
+            return result;
+        }
 
         foreach (WorkstationOutput output
             in recipe.outputs)
         {
-            if (output == null)
-                continue;
-
-            int count =
-                Mathf.Max(
-                    1,
-                    output.amount
-                );
-
-            for (int i = 0;
-                 i < count;
-                 i++)
+            if (output == null ||
+                output.itemData == null)
             {
-                SpawnSingle(
-                    output,
-                    recipe,
-                    inputItems,
-                    spawnIndex
+                continue;
+            }
+
+            StoredItemStack stack =
+                new StoredItemStack(
+                    output.itemData,
+                    output.amount,
+                    output.itemData.CreateInstance()
                 );
 
-                spawnIndex++;
-            }
+            result.Add(stack);
         }
 
-        Physics.SyncTransforms();
+        return result;
     }
 
-    GameObject SpawnSingle(
-        WorkstationOutput output,
+        void RouteOutput(
+        StoredItemStack stack,
         WorkstationRecipeData recipe,
-        List<PhysicalItem> inputItems,
-        int index)
+        List<PhysicalItem> inputItems)
     {
-        if (output.itemData == null)
+        if (stack == null ||
+            !stack.IsValid ||
+            stack.ItemData == null)
         {
-            Log("Output item data is null.");
+            Log("Skipped invalid output stack.");
+            return;
+        }
+
+        WorkstationOutputRoute route =
+            FindRoute(stack.ItemData);
+
+        if (route != null &&
+            route.target ==
+            WorkstationOutputTarget.Storage)
+        {
+            if (TrySendToStorage(
+                stack,
+                route))
+            {
+                return;
+            }
+
+            Log(
+                "Storage failed, fallback to spawn: " +
+                stack.ItemData.itemName
+            );
+        }
+
+        SpawnStack(
+            stack,
+            recipe,
+            inputItems
+        );
+    }
+
+    WorkstationOutputRoute FindRoute(
+        ItemData itemData)
+    {
+        if (routes == null ||
+            routes.Length == 0)
+        {
             return null;
         }
 
-        if (output.itemData.prefab == null)
+        WorkstationOutputRoute fallback = null;
+
+        foreach (WorkstationOutputRoute route
+            in routes)
+        {
+            if (route == null)
+                continue;
+
+            if (route.itemData == null)
+            {
+                if (fallback == null)
+                    fallback = route;
+
+                continue;
+            }
+
+            if (route.Matches(itemData))
+                return route;
+        }
+
+        return fallback;
+    }
+
+    bool TrySendToStorage(
+        StoredItemStack stack,
+        WorkstationOutputRoute route)
+    {
+        if (stack == null ||
+            !stack.IsValid ||
+            stack.ItemData == null)
+        {
+            return false;
+        }
+
+        if (route == null)
+            return false;
+
+        IStackStorageInput storage =
+            route.GetStorage();
+
+        if (storage == null)
         {
             Log(
-                "Output prefab missing: " +
-                output.itemData.itemName
+                "Storage route missing IStackStorageInput."
             );
 
-            return null;
+            return false;
+        }
+
+        if (!storage.CanInputStack(stack))
+        {
+            Log(
+                "Storage cannot receive: " +
+                stack.ItemData.itemName
+            );
+
+            return false;
+        }
+
+        bool success =
+            storage.InputStack(stack);
+
+        Log(
+            "Sent to storage: " +
+            stack.ItemData.itemName +
+            " | " +
+            success
+        );
+
+        return success;
+    }
+
+    void SpawnStack(
+        StoredItemStack stack,
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
+    {
+        if (stack == null ||
+            !stack.IsValid ||
+            stack.ItemData == null)
+        {
+            return;
+        }
+
+        int count =
+            spawnAmountAsSeparateObjects
+            ? stack.Amount
+            : 1;
+
+        int amountPerObject =
+            spawnAmountAsSeparateObjects
+            ? 1
+            : stack.Amount;
+
+        for (int i = 0;
+            i < count;
+            i++)
+        {
+            SpawnSingle(
+                stack,
+                amountPerObject,
+                recipe,
+                inputItems
+            );
+        }
+    }
+
+    void SpawnSingle(
+        StoredItemStack stack,
+        int amount,
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
+    {
+        GameObject prefab =
+            stack.ItemData.prefab;
+
+        if (prefab == null)
+        {
+            Log(
+                "Missing prefab: " +
+                stack.ItemData.itemName
+            );
+
+            return;
         }
 
         Vector3 position =
-            GetSpawnPosition(index);
+            spawnArea != null
+            ? spawnArea.GetSpawnPosition()
+            : transform.position;
 
         Quaternion rotation =
-            GetSpawnRotation();
+            spawnArea != null
+            ? spawnArea.GetSpawnRotation()
+            : transform.rotation;
 
         GameObject obj =
             Instantiate(
-                output.itemData.prefab,
+                prefab,
                 position,
                 rotation
             );
 
-        SetupPhysicalItem(
-            obj,
-            output,
-            recipe,
-            inputItems
-        );
-
-        SetupRigidbody(obj);
-
-        Log(
-            "Spawned physical object: " +
-            output.itemData.itemName
-        );
-
-        return obj;
-    }
-
-    void SetupPhysicalItem(
-        GameObject obj,
-        WorkstationOutput output,
-        WorkstationRecipeData recipe,
-        List<PhysicalItem> inputItems)
-    {
         PhysicalItem item =
             obj.GetComponent<PhysicalItem>();
 
-        if (item == null)
+        if (item != null)
         {
-            item =
-                obj.GetComponentInChildren
-                <PhysicalItem>();
+            item.SetAmount(amount);
+
+            item.SetInstanceData(
+                stack.InstanceData
+            );
         }
 
-        if (item == null)
+        WeaponInstanceHolder weapon =
+            obj.GetComponent
+            <WeaponInstanceHolder>();
+
+        if (weapon != null &&
+            stack.WeaponInstance != null)
         {
-            Log("Spawned object has no PhysicalItem.");
-            return;
+            weapon.SetInstance(
+                stack.WeaponInstance.Clone()
+            );
         }
 
-        int physicalAmount =
-            forcePhysicalAmountToOne
-            ? 1
-            : Mathf.Max(
-                1,
-                output.amount
+        if (postProcessor != null)
+        {
+            postProcessor.ProcessSpawnedObject(
+                obj,
+                stack,
+                recipe,
+                inputItems
             );
+        }
 
-        ItemInstanceData instance =
-            ItemQualityCalculator
-            .CreateOutputInstance(
-                inputItems,
-                recipe != null
-                ? recipe.baseQuality
-                : 80f,
-                recipe != null
-                ? recipe.baseDefect
-                : 0f
-            );
+        Physics.SyncTransforms();
 
-        item.Initialize(
-            output.itemData,
-            physicalAmount,
-            instance
+        Log(
+            "Spawned physical object: " +
+            stack.ItemData.itemName
         );
     }
 
-    void SetupRigidbody(
-        GameObject obj)
-    {
-        if (!resetRigidbody)
-            return;
-
-        Rigidbody rb =
-            obj.GetComponent<Rigidbody>();
-
-        if (rb == null)
-        {
-            rb =
-                obj.GetComponentInChildren
-                <Rigidbody>();
-        }
-
-        if (rb == null)
-            return;
-
-        rb.velocity =
-            Vector3.zero;
-
-        rb.angularVelocity =
-            Vector3.zero;
-
-        rb.WakeUp();
-    }
-
-    Vector3 GetSpawnPosition(
-        int index)
-    {
-        if (HasValidArea())
-        {
-            return GetAreaPosition(index);
-        }
-
-        return GetPointPosition(index);
-    }
-
-    Quaternion GetSpawnRotation()
-    {
-        if (outputPoint != null)
-            return outputPoint.rotation;
-
-        return transform.rotation;
-    }
-
-    bool HasValidArea()
-    {
-        if (outputArea == null)
-            return false;
-
-        if (!outputArea.enabled)
-            return false;
-
-        Vector3 size =
-            outputArea.size;
-
-        return size.x > 0f &&
-            size.y > 0f &&
-            size.z > 0f;
-    }
-
-    Vector3 GetPointPosition(
-        int index)
-    {
-        Transform point =
-            outputPoint != null
-            ? outputPoint
-            : transform;
-
-        Vector3 offset =
-            point.right *
-            spacing *
-            index;
-
-        return point.position + offset;
-    }
-
-    Vector3 GetAreaPosition(
-        int index)
-    {
-        int safeColumns =
-            Mathf.Max(
-                1,
-                columns
-            );
-
-        int xIndex =
-            index % safeColumns;
-
-        int zIndex =
-            index / safeColumns;
-
-        Vector3 localOffset =
-            new Vector3(
-                GetCenteredOffset(
-                    xIndex,
-                    safeColumns
-                ),
-                0f,
-                zIndex * spacing
-            );
-
-        Vector3 localCenter =
-            outputArea.center;
-
-        Vector3 halfSize =
-            outputArea.size * 0.5f;
-
-        localOffset.x =
-            Mathf.Clamp(
-                localOffset.x,
-                -halfSize.x + spacing * 0.5f,
-                halfSize.x - spacing * 0.5f
-            );
-
-        localOffset.z =
-            Mathf.Clamp(
-                localOffset.z,
-                -halfSize.z + spacing * 0.5f,
-                halfSize.z - spacing * 0.5f
-            );
-
-        localOffset.y =
-            halfSize.y + spawnHeightOffset;
-
-        Vector3 localPosition =
-            localCenter + localOffset;
-
-        return outputArea.transform
-            .TransformPoint(localPosition);
-    }
-
-    float GetCenteredOffset(
-        int index,
-        int count)
-    {
-        float center =
-            (count - 1) * 0.5f;
-
-        return
-            (index - center) *
-            spacing;
-    }
-
-    void Log(
+    protected void Log(
         string message)
     {
         if (!debugLog)
             return;
 
         Debug.Log(
-            "[WorkstationOutputSpawner] " +
+            "[" + GetType().Name + "] " +
             message,
             this
         );

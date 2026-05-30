@@ -8,21 +8,24 @@ public class WeaponPartInstance
     private WeaponPartData partData;
 
     [SerializeField]
-    private ItemInstanceData materialInstance;
+    private ItemInstanceData itemInstance;
 
     [SerializeField]
-    [Range(0f, 100f)]
-    private float productionQuality = 80f;
+    private float productionQuality;
 
     [SerializeField]
-    [Range(0f, 100f)]
     private float defectLevel;
 
     public WeaponPartData PartData =>
         partData;
 
-    public ItemInstanceData MaterialInstance =>
-        materialInstance;
+    public ItemInstanceData ItemInstance =>
+        itemInstance;
+
+    public WeaponPartRole Role =>
+        partData != null
+        ? partData.role
+        : WeaponPartRole.Other;
 
     public float ProductionQuality =>
         productionQuality;
@@ -30,19 +33,41 @@ public class WeaponPartInstance
     public float DefectLevel =>
         defectLevel;
 
-    public WeaponPartRole Role =>
-        partData != null
-        ? partData.role
-        : WeaponPartRole.InternalMechanism;
+    public float MaterialQuality =>
+        itemInstance != null
+        ? itemInstance.OverallQuality
+        : 50f;
+
+    public float FinalQuality
+    {
+        get
+        {
+            float value =
+                MaterialQuality * 0.75f +
+                productionQuality * 0.25f -
+                defectLevel * 0.5f;
+
+            return Mathf.Clamp(
+                value,
+                0f,
+                100f
+            );
+        }
+    }
 
     public WeaponPartInstance(
         WeaponPartData partData,
-        ItemInstanceData materialInstance,
+        ItemInstanceData itemInstance,
         float productionQuality,
         float defectLevel)
     {
         this.partData = partData;
-        this.materialInstance = materialInstance;
+
+        this.itemInstance =
+            itemInstance != null
+            ? itemInstance.Clone()
+            : null;
+
         this.productionQuality =
             Mathf.Clamp(
                 productionQuality,
@@ -58,29 +83,13 @@ public class WeaponPartInstance
             );
     }
 
-    public float GetPartQuality()
+    public WeaponPartInstance Clone()
     {
-        if (partData == null ||
-            materialInstance == null)
-        {
-            return 0f;
-        }
-
-        float materialQuality =
-            materialInstance.OverallQuality;
-
-        float result =
-            materialQuality *
-            partData.materialWeight +
-            productionQuality *
-            partData.productionWeight;
-
-        result -= defectLevel;
-
-        return Mathf.Clamp(
-            result,
-            0f,
-            100f
+        return new WeaponPartInstance(
+            partData,
+            itemInstance,
+            productionQuality,
+            defectLevel
         );
     }
 }

@@ -27,12 +27,54 @@ public class WeaponInteractable :
         supportedModes =
             GrabMode.Physics |
             GrabMode.Attach;
+
+        ResolveReferences();
+    }
+
+    void ResolveReferences()
+    {
+        RefreshRigidbody();
+
+        if (attachFollower == null)
+        {
+            attachFollower =
+                GetComponent<WeaponAttachFollower>();
+        }
+
+        if (layerHandler == null)
+        {
+            layerHandler =
+                GetComponent<WeaponLayerHandler>();
+        }
+
+        if (shooter == null)
+        {
+            shooter =
+                GetComponent<WeaponShooter>();
+        }
     }
 
     public override bool Grab(
         XRHandInteractor hand,
         GrabMode mode)
     {
+        ResolveReferences();
+
+        if (hand == null)
+            return false;
+
+        if (mode == GrabMode.Attach &&
+            attachFollower == null)
+        {
+            Debug.LogWarning(
+                "[WeaponInteractable] Cannot use attach mode. " +
+                "WeaponAttachFollower is missing.",
+                this
+            );
+
+            return false;
+        }
+
         bool success =
             base.Grab(hand, mode);
 
@@ -87,39 +129,63 @@ public class WeaponInteractable :
         if (!IsHeld)
             return;
 
-        if (currentMode ==
-            GrabMode.Attach)
-        {
-            attachFollower.Tick(
-                currentHand
-            );
-        }
+        if (currentMode != GrabMode.Attach)
+            return;
+
+        if (attachFollower == null)
+            return;
+
+        attachFollower.Tick(
+            currentHand
+        );
     }
 
     void BeginPhysicsMode()
     {
+        RefreshRigidbody();
+
+        if (rb == null)
+            return;
+
         rb.isKinematic = false;
 
         rb.useGravity = false;
 
         rb.drag = damping;
 
-        layerHandler.SetHeldObjectLayer();
+        if (layerHandler != null)
+        {
+            layerHandler.SetHeldObjectLayer();
+        }
     }
 
     void EndPhysicsMode()
     {
-        rb.useGravity = true;
+        RefreshRigidbody();
 
-        rb.drag = 0f;
+        if (rb != null)
+        {
+            rb.useGravity = true;
 
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.drag = 0f;
 
-        layerHandler.Restore();
+            rb.interpolation =
+                RigidbodyInterpolation.Interpolate;
+        }
+
+        if (layerHandler != null)
+        {
+            layerHandler.Restore();
+        }
     }
 
     void BeginAttachMode()
     {
+        RefreshRigidbody();
+
+        if (rb == null)
+            return;
+
         isAttached = true;
 
         ResetPhysics();
@@ -128,25 +194,52 @@ public class WeaponInteractable :
 
         rb.useGravity = false;
 
-        rb.interpolation = RigidbodyInterpolation.None;
+        rb.interpolation =
+            RigidbodyInterpolation.None;
 
-        layerHandler.SetHeldWeaponLayer();
+        if (layerHandler != null)
+        {
+            layerHandler.SetHeldWeaponLayer();
+        }
     }
 
     void EndAttachMode()
     {
         isAttached = false;
 
-        rb.isKinematic = false;
+        RefreshRigidbody();
 
-        rb.useGravity = true;
+        if (rb != null)
+        {
+            rb.isKinematic = false;
 
-        layerHandler.Restore();
+            rb.useGravity = true;
+        }
+
+        if (layerHandler != null)
+        {
+            layerHandler.Restore();
+        }
     }
 
     public void Activate(
         XRHandInteractor hand)
     {
+        if (shooter == null)
+        {
+            ResolveReferences();
+        }
+
+        if (shooter == null)
+        {
+            Debug.LogWarning(
+                "[WeaponInteractable] Cannot activate. WeaponShooter is missing.",
+                this
+            );
+
+            return;
+        }
+
         shooter.Fire();
     }
 }

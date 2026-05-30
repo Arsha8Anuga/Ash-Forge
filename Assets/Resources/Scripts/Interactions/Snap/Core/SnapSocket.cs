@@ -230,28 +230,89 @@ public class SnapSocket : MonoBehaviour
         int value)
     {
         currentStack =
-            Mathf.Max(0, value);
+            Mathf.Clamp(
+                value,
+                0,
+                maxStack
+            );
+
+        SyncCurrentItemAmount();
     }
 
     public void IncrementStack()
     {
-        currentStack++;
+        TryRegisterStack(1);
     }
 
-    public bool TryRegisterStack()
+    public bool CanRegisterStack(
+        int amount)
     {
-        if (currentStack >= maxStack)
+        if (useChainMode)
             return false;
 
-        if (host != null &&
-            !host.TryAdd(1))
+        amount =
+            Mathf.Max(
+                1,
+                amount
+            );
+
+        if (currentStack + amount >
+            maxStack)
         {
             return false;
         }
 
-        currentStack++;
+        if (host != null &&
+            !host.CanAdd(amount))
+        {
+            return false;
+        }
+
         return true;
     }
+
+   public bool TryRegisterStack()
+    {
+        return TryRegisterStack(1);
+    }
+
+    public bool TryRegisterStack(
+        int amount)
+    {
+        if (!CanRegisterStack(amount))
+            return false;
+
+        amount =
+            Mathf.Max(
+                1,
+                amount
+            );
+
+        if (host != null &&
+            !host.TryAdd(amount))
+        {
+            return false;
+        }
+
+        currentStack += amount;
+
+        SyncCurrentItemAmount();
+
+        return true;
+    }
+
+    void SyncCurrentItemAmount()
+{
+    if (currentItem == null)
+        return;
+
+    if (currentStack <= 0)
+        return;
+
+    currentItem.SetAmount(
+        currentStack
+    );
+}
 
     public SnapHost ResolveRootHost()
     {
@@ -309,16 +370,37 @@ public class SnapSocket : MonoBehaviour
 
     public void RemoveOne()
     {
+        RemoveStackAmount(1);
+    }
+
+    public void RemoveStackAmount(
+        int amount)
+    {
         if (useChainMode)
+            return;
+
+        if (amount <= 0)
             return;
 
         if (currentStack <= 0)
             return;
 
-        currentStack--;
+        int removed =
+            Mathf.Min(
+                amount,
+                currentStack
+            );
+
+        currentStack -= removed;
 
         if (host != null)
-            host.Remove(1);
+        {
+            host.Remove(
+                removed
+            );
+        }
+
+        SyncCurrentItemAmount();
 
         if (currentStack <= 0 &&
             current != null)

@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class QueueItemStorage :
     MonoBehaviour,
-    IItemStorage
+    IItemStorage,
+    IStackStorageInput
 {
     [SerializeField]
     private int capacity = 20;
@@ -47,13 +48,8 @@ public class QueueItemStorage :
         if (item.StorageSize <= 0)
             return false;
 
-        if (CurrentCount + item.StorageSize >
-            capacity)
-        {
-            return false;
-        }
-
-        return true;
+        return CurrentCount +
+            item.StorageSize <= capacity;
     }
 
     public bool Input(
@@ -62,33 +58,31 @@ public class QueueItemStorage :
         if (!CanInput(item))
             return false;
 
+        WeaponInstance weaponInstance = null;
+
+        WeaponInstanceHolder weaponHolder =
+            item.GetComponent
+            <WeaponInstanceHolder>();
+
+        if (weaponHolder != null)
+        {
+            weaponInstance =
+                weaponHolder.Instance;
+        }
+
         StoredItemStack stack =
             new StoredItemStack(
                 item.ItemData,
                 item.Amount,
-                item.InstanceData
+                item.InstanceData,
+                weaponInstance
             );
 
-        queue.Enqueue(stack);
+        bool success =
+            InputStack(stack);
 
-        CurrentCount += stack.StorageSize;
-
-        if (debugLog)
-        {
-            Debug.Log(
-                "[QueueStorage] Input: " +
-                item.ItemName +
-                " x" +
-                item.Amount +
-                " | Size: " +
-                stack.StorageSize +
-                " | Used: " +
-                CurrentCount +
-                "/" +
-                capacity,
-                this
-            );
-        }
+        if (!success)
+            return false;
 
         if (destroyInputObject)
         {
@@ -105,6 +99,56 @@ public class QueueItemStorage :
                 item.gameObject
             );
         }
+
+        return true;
+    }
+
+    public bool CanInputStack(
+        StoredItemStack stack)
+    {
+        if (stack == null)
+            return false;
+
+        if (!stack.IsValid)
+            return false;
+
+        if (stack.ItemData == null)
+            return false;
+
+        if (!stack.ItemData.canStore)
+            return false;
+
+        if (stack.StorageSize <= 0)
+            return false;
+
+        return CurrentCount +
+            stack.StorageSize <= capacity;
+    }
+
+    public bool InputStack(
+        StoredItemStack stack)
+    {
+        if (!CanInputStack(stack))
+            return false;
+
+        StoredItemStack copy =
+            stack.Clone();
+
+        queue.Enqueue(copy);
+
+        CurrentCount +=
+            copy.StorageSize;
+
+        Log(
+            "Input stack: " +
+            copy.ItemData.itemName +
+            " x" +
+            copy.Amount +
+            " | Used: " +
+            CurrentCount +
+            "/" +
+            capacity
+        );
 
         return true;
     }
@@ -133,23 +177,30 @@ public class QueueItemStorage :
                 stack.StorageSize
             );
 
-        if (debugLog)
-        {
-            Debug.Log(
-                "[QueueStorage] Output: " +
-                stack.ItemData.itemName +
-                " x" +
-                stack.Amount +
-                " | Size: " +
-                stack.StorageSize +
-                " | Used: " +
-                CurrentCount +
-                "/" +
-                capacity,
-                this
-            );
-        }
+        Log(
+            "Output: " +
+            stack.ItemData.itemName +
+            " x" +
+            stack.Amount +
+            " | Used: " +
+            CurrentCount +
+            "/" +
+            capacity
+        );
 
         return true;
+    }
+
+    void Log(
+        string message)
+    {
+        if (!debugLog)
+            return;
+
+        Debug.Log(
+            "[QueueStorage] " +
+            message,
+            this
+        );
     }
 }

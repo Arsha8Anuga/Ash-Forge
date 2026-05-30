@@ -133,6 +133,11 @@ public class SmallObjectInteractable :
 
         currentMode = GrabMode.None;
 
+        RefreshRigidbody();
+
+        if (rb == null)
+            return;
+
         rb.useGravity = true;
 
         rb.drag = 0f;

@@ -37,7 +37,7 @@ public class WorkstationBase :
 
     [Header("Debug")]
     [SerializeField]
-    private bool debugLog;
+    protected bool debugLog;
 
     private IWorkstationInputProvider inputProvider;
 
@@ -249,6 +249,45 @@ public class WorkstationBase :
             return;
         }
 
+        if (!CanStartRecipe(
+            recipe,
+            selected
+        ))
+        {
+            Log(
+                "Recipe rejected by workstation rule: " +
+                recipe.recipeName
+            );
+
+            if (ui != null)
+            {
+                ui.ShowFailed(
+                    "Recipe rule failed"
+                );
+            }
+
+            return;
+        }
+
+              if (!CanStartRecipe(
+            recipe,
+            selected))
+        {
+            Log(
+                "Recipe rejected by validation: " +
+                recipe.recipeName
+            );
+
+            if (ui != null)
+            {
+                ui.ShowFailed(
+                    "Recipe validation failed"
+                );
+            }
+
+            return;
+        }
+
         BeginProcess(
             recipe,
             selected
@@ -313,6 +352,13 @@ public class WorkstationBase :
         CancelWork(
             "Process failed: input changed"
         );
+    }
+
+    protected virtual bool CanStartRecipe(
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> selectedItems)
+    {
+        return true;
     }
 
     public void CompleteWork()
@@ -448,14 +494,16 @@ public class WorkstationBase :
         );
     }
 
-    void Log(
+    
+
+    protected void Log(
         string message)
     {
         if (!debugLog)
             return;
 
         Debug.Log(
-            "[WorkstationBase] " +
+            "[" + GetType().Name + "] " +
             message,
             this
         );

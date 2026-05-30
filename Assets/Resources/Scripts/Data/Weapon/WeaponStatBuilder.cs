@@ -3,160 +3,162 @@ using UnityEngine;
 
 public static class WeaponStatBuilder
 {
-    public static WeaponStatProfile Build(
-        WeaponStatProfile baseWeaponStats,
+    public static WeaponStatBlock BuildStats(
         List<WeaponPartInstance> parts)
     {
-        WeaponStatProfile result =
-            baseWeaponStats != null
-            ? baseWeaponStats.Clone()
-            : new WeaponStatProfile();
+        WeaponStatBlock result =
+            new WeaponStatBlock();
 
-        if (parts == null)
+        if (parts == null ||
+            parts.Count == 0)
+        {
+            result.Clamp();
             return result;
+        }
+
+        float totalWeight = 0f;
+
+        WeaponStatBlock sum =
+            new WeaponStatBlock();
 
         foreach (WeaponPartInstance part
             in parts)
         {
-            ApplyPart(
-                result,
-                part
+            if (part == null ||
+                part.PartData == null)
+            {
+                continue;
+            }
+
+            WeaponStatBlock contribution =
+                part.PartData.statContribution;
+
+            if (contribution == null)
+                continue;
+
+            float qualityFactor =
+                part.FinalQuality / 100f;
+
+            float influence =
+                Mathf.Max(
+                    0.01f,
+                    part.PartData.qualityInfluence
+                );
+
+            float weight =
+                qualityFactor * influence;
+
+            AddWeighted(
+                sum,
+                contribution,
+                weight
             );
+
+            sum.defect +=
+                part.DefectLevel *
+                part.PartData.defectInfluence;
+
+            totalWeight += weight;
         }
 
-        ClampStats(result);
+        if (totalWeight <= 0f)
+        {
+            result.Clamp();
+            return result;
+        }
+
+        result.damage =
+            sum.damage / totalWeight;
+
+        result.accuracy =
+            sum.accuracy / totalWeight;
+
+        result.stability =
+            sum.stability / totalWeight;
+
+        result.durability =
+            sum.durability / totalWeight;
+
+        result.fireRate =
+            sum.fireRate / totalWeight;
+
+        result.handling =
+            sum.handling / totalWeight;
+
+        result.reliability =
+            sum.reliability / totalWeight;
+
+        result.defect =
+            sum.defect / parts.Count;
+
+        ApplyRoleBonus(
+            result,
+            parts
+        );
+
+        result.Clamp();
 
         return result;
     }
 
-    static void ApplyPart(
-        WeaponStatProfile result,
-        WeaponPartInstance part)
+    static void AddWeighted(
+        WeaponStatBlock target,
+        WeaponStatBlock source,
+        float weight)
     {
-        if (result == null ||
-            part == null ||
-            part.PartData == null ||
-            part.MaterialInstance == null)
-        {
-            return;
-        }
+        target.damage +=
+            source.damage * weight;
 
-        WeaponPartData data =
-            part.PartData;
+        target.accuracy +=
+            source.accuracy * weight;
 
-        ItemQualityStats q =
-            part.MaterialInstance.Quality;
+        target.stability +=
+            source.stability * weight;
 
-        if (q == null)
-            return;
+        target.durability +=
+            source.durability * weight;
 
-        float partQuality =
-            part.GetPartQuality() / 100f;
+        target.fireRate +=
+            source.fireRate * weight;
 
-        WeaponStatProfile baseStats =
-            data.baseStats;
+        target.handling +=
+            source.handling * weight;
 
-        result.damage +=
-            baseStats.damage *
-            partQuality *
-            (
-                q.hardness *
-                data.hardnessInfluence
-            ) / 100f;
-
-        result.accuracy +=
-            baseStats.accuracy *
-            partQuality *
-            (
-                q.stability *
-                data.stabilityInfluence
-            ) / 100f;
-
-        result.recoil +=
-            baseStats.recoil *
-            (
-                1f -
-                q.stability / 100f
-            );
-
-        result.durability +=
-            baseStats.durability *
-            partQuality *
-            (
-                q.durability *
-                data.durabilityInfluence
-            ) / 100f;
-
-        result.fireRate +=
-            baseStats.fireRate *
-            partQuality *
-            (
-                q.stability / 100f
-            );
-
-        result.reloadSpeed +=
-            baseStats.reloadSpeed *
-            partQuality;
-
-        result.heatResistance +=
-            baseStats.heatResistance *
-            partQuality *
-            (
-                q.hardness / 100f
-            );
-
-        result.jamChance +=
-            baseStats.jamChance;
-
-        result.jamChance -=
-            q.defectResistance *
-            data.defectResistanceInfluence *
-            0.01f;
-
-        result.jamChance +=
-            part.DefectLevel *
-            0.01f;
-
-        result.weight +=
-            baseStats.weight;
+        target.reliability +=
+            source.reliability * weight;
     }
 
-    static void ClampStats(
-        WeaponStatProfile stats)
+    static void ApplyRoleBonus(
+        WeaponStatBlock stats,
+        List<WeaponPartInstance> parts)
     {
-        stats.damage =
-            Mathf.Max(0f, stats.damage);
+        if (HasRole(parts, WeaponPartRole.Barrel))
+            stats.accuracy += 5f;
 
-        stats.accuracy =
-            Mathf.Clamp(
-                stats.accuracy,
-                0f,
-                100f
-            );
+        if (HasRole(parts, WeaponPartRole.Stock))
+            stats.stability += 5f;
 
-        stats.recoil =
-            Mathf.Max(0f, stats.recoil);
+        if (HasRole(parts, WeaponPartRole.TriggerGroup))
+            stats.fireRate += 3f;
 
-        stats.durability =
-            Mathf.Max(0f, stats.durability);
+        if (HasRole(parts, WeaponPartRole.Receiver))
+            stats.reliability += 5f;
+    }
 
-        stats.fireRate =
-            Mathf.Max(0f, stats.fireRate);
+    static bool HasRole(
+        List<WeaponPartInstance> parts,
+        WeaponPartRole role)
+    {
+        foreach (WeaponPartInstance part
+            in parts)
+        {
+            if (part == null)
+                continue;
 
-        stats.reloadSpeed =
-            Mathf.Max(0f, stats.reloadSpeed);
+            if (part.Role == role)
+                return true;
+        }
 
-        stats.heatResistance =
-            Mathf.Max(0f, stats.heatResistance);
-
-        stats.jamChance =
-            Mathf.Clamp(
-                stats.jamChance,
-                0f,
-                1f
-            );
-
-        stats.weight =
-            Mathf.Max(0f, stats.weight);
+        return false;
     }
 }

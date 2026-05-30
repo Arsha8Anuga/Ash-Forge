@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(
-    menuName = "Weapons/Weapon Part Data"
+    menuName = "Weapon/Weapon Part Data"
 )]
 public class WeaponPartData :
     ScriptableObject
@@ -11,35 +11,26 @@ public class WeaponPartData :
 
     public string partName;
 
-    public WeaponPartRole role;
+    public WeaponPartRole role =
+        WeaponPartRole.Other;
 
-    [Header("Base Stats")]
-    public WeaponStatProfile baseStats =
-        new WeaponStatProfile();
+    [TextArea]
+    public string description;
 
-    [Header("Quality Influence")]
+    [Header("Physical Output")]
+    public ItemData outputItemData;
+
+    [Header("Base Stat Contribution")]
+    public WeaponStatBlock statContribution =
+        new WeaponStatBlock();
+
+    [Header("Importance")]
     [Range(0f, 2f)]
-    public float purityInfluence = 0.5f;
-
-    [Range(0f, 2f)]
-    public float hardnessInfluence = 1f;
-
-    [Range(0f, 2f)]
-    public float durabilityInfluence = 1f;
-
-    [Range(0f, 2f)]
-    public float conductivityInfluence = 0.3f;
+    public float qualityInfluence = 1f;
 
     [Range(0f, 2f)]
-    public float stabilityInfluence = 1f;
+    public float defectInfluence = 1f;
 
-    [Range(0f, 2f)]
-    public float defectResistanceInfluence = 1f;
-
-    [Header("Production")]
-    [Range(0f, 1f)]
-    public float materialWeight = 0.8f;
-
-    [Range(0f, 1f)]
-    public float productionWeight = 0.2f;
+    [Header("Assembly Rule")]
+    public bool requiredForBasicWeapon = false;
 }

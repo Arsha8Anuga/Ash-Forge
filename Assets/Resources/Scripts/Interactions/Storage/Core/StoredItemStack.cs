@@ -12,6 +12,9 @@ public class StoredItemStack
     [SerializeField]
     private ItemInstanceData instanceData;
 
+    [SerializeField]
+    private WeaponInstance weaponInstance;
+
     public ItemData ItemData =>
         itemData;
 
@@ -20,6 +23,9 @@ public class StoredItemStack
 
     public ItemInstanceData InstanceData =>
         instanceData;
+
+    public WeaponInstance WeaponInstance =>
+        weaponInstance;
 
     public bool IsValid =>
         itemData != null &&
@@ -47,6 +53,33 @@ public class StoredItemStack
             instanceData != null
             ? instanceData.Clone()
             : null;
+
+        weaponInstance = null;
+    }
+
+    public StoredItemStack(
+        ItemData itemData,
+        int amount,
+        ItemInstanceData instanceData,
+        WeaponInstance weaponInstance)
+    {
+        this.itemData = itemData;
+
+        this.amount =
+            Mathf.Max(
+                1,
+                amount
+            );
+
+        this.instanceData =
+            instanceData != null
+            ? instanceData.Clone()
+            : null;
+
+        this.weaponInstance =
+            weaponInstance != null
+            ? weaponInstance.Clone()
+            : null;
     }
 
     public StoredItemStack Clone()
@@ -54,7 +87,8 @@ public class StoredItemStack
         return new StoredItemStack(
             itemData,
             amount,
-            instanceData
+            instanceData,
+            weaponInstance
         );
     }
 
@@ -64,7 +98,8 @@ public class StoredItemStack
         return new StoredItemStack(
             itemData,
             newAmount,
-            instanceData
+            instanceData,
+            weaponInstance
         );
     }
 }

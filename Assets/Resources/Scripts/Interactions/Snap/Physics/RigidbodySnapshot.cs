@@ -44,6 +44,9 @@ public class RigidbodySnapshot
     public void ApplyTo(
         Rigidbody rb)
     {
+        if (rb == null)
+            return;
+
         rb.mass =
             mass;
 
@@ -54,7 +57,7 @@ public class RigidbodySnapshot
             angularDrag;
 
         rb.useGravity =
-            true;
+            useGravity;
 
         rb.isKinematic =
             false;

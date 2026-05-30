@@ -20,14 +20,31 @@ public class StorageOutputSpawner :
 
     void Awake()
     {
-        storage =
-            storageBehaviour as IItemStorage;
+        ResolveReferences();
+    }
+
+    void ResolveReferences()
+    {
+        if (storage == null)
+        {
+            storage =
+                storageBehaviour
+                as IItemStorage;
+        }
 
         if (storage == null)
-            storage = GetComponentInParent<IItemStorage>();
+        {
+            storage =
+                GetComponentInParent
+                <IItemStorage>();
+        }
 
         if (spawnArea == null)
-            spawnArea = GetComponentInChildren<StorageSpawnArea>();
+        {
+            spawnArea =
+                GetComponentInChildren
+                <StorageSpawnArea>();
+        }
     }
 
     public bool SpawnOutput()
@@ -47,8 +64,13 @@ public class StorageOutputSpawner :
     bool SpawnOutputInternal(
         XRHandInteractor hand)
     {
+        ResolveReferences();
+
         if (storage == null)
+        {
+            Log("Spawn failed: storage missing.");
             return false;
+        }
 
         if (!storage.TryOutput(
             out StoredItemStack stack))
@@ -60,6 +82,7 @@ public class StorageOutputSpawner :
             !stack.IsValid ||
             stack.ItemData == null)
         {
+            Log("Spawn failed: invalid output stack.");
             return false;
         }
 
@@ -67,7 +90,14 @@ public class StorageOutputSpawner :
             stack.ItemData.prefab;
 
         if (prefab == null)
+        {
+            Log(
+                "Spawn failed: prefab missing for " +
+                stack.ItemData.itemName
+            );
+
             return false;
+        }
 
         Vector3 position =
             spawnArea != null
@@ -90,8 +120,6 @@ public class StorageOutputSpawner :
 
         PhysicalItem item =
             obj.GetComponent<PhysicalItem>();
-        
-        
 
         if (item != null)
         {
@@ -101,6 +129,23 @@ public class StorageOutputSpawner :
 
             item.SetInstanceData(
                 stack.InstanceData
+            );
+        }
+        else
+        {
+            Log(
+                "Spawn warning: spawned prefab has no PhysicalItem."
+            );
+        }
+
+        WeaponInstanceHolder weapon =
+            obj.GetComponent<WeaponInstanceHolder>();
+
+        if (weapon != null &&
+            stack.WeaponInstance != null)
+        {
+            weapon.SetInstance(
+                stack.WeaponInstance.Clone()
             );
         }
 

@@ -16,8 +16,31 @@ public class WorkstationToolActionZone :
 
     void Awake()
     {
+        ResolveReceiver();
+    }
+
+    void ResolveReceiver()
+    {
+        if (receiverBehaviour != null)
+        {
+            receiver =
+                receiverBehaviour
+                as IWorkstationToolReceiver;
+        }
+
+        if (receiver != null)
+            return;
+
         receiver =
-            receiverBehaviour as IWorkstationToolReceiver;
+            GetComponentInParent
+            <IWorkstationToolReceiver>();
+
+        if (receiver != null)
+            return;
+
+        receiver =
+            GetComponent
+            <IWorkstationToolReceiver>();
     }
 
     void OnTriggerEnter(
@@ -37,6 +60,11 @@ public class WorkstationToolActionZone :
     {
         if (receiver == null)
         {
+            ResolveReceiver();
+        }
+
+        if (receiver == null)
+        {
             Log("No receiver.");
             return;
         }
@@ -52,7 +80,8 @@ public class WorkstationToolActionZone :
             hit.tool.ToolType +
             " | Item: " +
             (
-                hit.item != null
+                hit.item != null &&
+                hit.item.ItemData != null
                 ? hit.item.ItemData.itemName
                 : "none"
             )

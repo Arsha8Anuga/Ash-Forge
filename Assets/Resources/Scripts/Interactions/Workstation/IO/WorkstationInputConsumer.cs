@@ -7,6 +7,25 @@ public class WorkstationInputConsumer :
     [SerializeField]
     private bool debugLog;
 
+        class ConsumeEntry
+    {
+        public PhysicalItem item;
+        public int amount;
+
+        public ConsumeEntry(
+            PhysicalItem item,
+            int amount)
+        {
+            this.item = item;
+
+            this.amount =
+                Mathf.Max(
+                    0,
+                    amount
+                );
+        }
+    }
+
     public void Consume(
         WorkstationRecipeData recipe,
         List<PhysicalItem> selectedItems)
@@ -20,36 +39,62 @@ public class WorkstationInputConsumer :
         if (recipe.requirements == null)
             return;
 
-        List<PhysicalItem> consumeItems =
-            BuildConsumeList(
+        List<ConsumeEntry> consumeEntries =
+            BuildConsumeEntries(
                 recipe,
                 selectedItems
             );
 
         SortDeepestChainFirst(
-            consumeItems
+            consumeEntries
         );
 
-        foreach (PhysicalItem item
-            in consumeItems)
+        foreach (ConsumeEntry entry
+            in consumeEntries)
         {
-            ConsumeOnePhysicalItem(
-                item
+            ConsumeEntryAmount(
+                entry
             );
         }
     }
 
-    List<PhysicalItem> BuildConsumeList(
+   List<ConsumeEntry> BuildConsumeEntries(
         WorkstationRecipeData recipe,
         List<PhysicalItem> selectedItems)
     {
-        List<PhysicalItem> result =
-            new List<PhysicalItem>();
+        List<ConsumeEntry> result =
+            new List<ConsumeEntry>();
 
-        List<PhysicalItem> pool =
-            new List<PhysicalItem>(
-                selectedItems
+        if (recipe == null ||
+            recipe.requirements == null ||
+            selectedItems == null)
+        {
+            return result;
+        }
+
+        Dictionary<PhysicalItem, int> availableAmounts =
+            new Dictionary<PhysicalItem, int>();
+
+        foreach (PhysicalItem item
+            in selectedItems)
+        {
+            if (item == null)
+                continue;
+
+            if (!item.IsValid)
+                continue;
+
+            if (availableAmounts.ContainsKey(item))
+                continue;
+
+            availableAmounts.Add(
+                item,
+                Mathf.Max(
+                    1,
+                    item.Amount
+                )
             );
+        }
 
         foreach (WorkstationRequirement req
             in recipe.requirements)
@@ -66,59 +111,126 @@ public class WorkstationInputConsumer :
                     req.amount
                 );
 
-            for (int i = pool.Count - 1;
-                i >= 0 && remaining > 0;
-                i--)
+            foreach (PhysicalItem item
+                in selectedItems)
             {
-                PhysicalItem item =
-                    pool[i];
+                if (remaining <= 0)
+                    break;
 
                 if (item == null)
-                {
-                    pool.RemoveAt(i);
                     continue;
-                }
 
                 if (!item.IsValid)
-                {
-                    pool.RemoveAt(i);
                     continue;
-                }
 
                 if (item.ItemData != req.itemData)
                     continue;
 
-                result.Add(item);
+                if (!availableAmounts.TryGetValue(
+                    item,
+                    out int available))
+                {
+                    continue;
+                }
 
-                pool.RemoveAt(i);
+                if (available <= 0)
+                    continue;
 
-                remaining--;
+                int consumeAmount =
+                    Mathf.Min(
+                        available,
+                        remaining
+                    );
+
+                AddOrMergeConsumeEntry(
+                    result,
+                    item,
+                    consumeAmount
+                );
+
+                availableAmounts[item] =
+                    available - consumeAmount;
+
+                remaining -= consumeAmount;
+            }
+
+            if (remaining > 0)
+            {
+                Log(
+                    "Consume warning: insufficient item during consume: " +
+                    req.itemData.itemName +
+                    " missing " +
+                    remaining
+                );
             }
         }
 
         return result;
     }
 
-    void SortDeepestChainFirst(
-        List<PhysicalItem> items)
+    void AddOrMergeConsumeEntry(
+        List<ConsumeEntry> entries,
+        PhysicalItem item,
+        int amount)
     {
-        if (items == null)
+        if (entries == null ||
+            item == null ||
+            amount <= 0)
+        {
+            return;
+        }
+
+        foreach (ConsumeEntry entry
+            in entries)
+        {
+            if (entry == null)
+                continue;
+
+            if (entry.item != item)
+                continue;
+
+            entry.amount += amount;
+            return;
+        }
+
+        entries.Add(
+            new ConsumeEntry(
+                item,
+                amount
+            )
+        );
+    }
+
+    void SortDeepestChainFirst(
+        List<ConsumeEntry> entries)
+    {
+        if (entries == null)
             return;
 
-        items.Sort(
+        entries.Sort(
             CompareDepthDescending
         );
     }
 
     int CompareDepthDescending(
-        PhysicalItem a,
-        PhysicalItem b)
+        ConsumeEntry a,
+        ConsumeEntry b)
     {
+        PhysicalItem itemA =
+            a != null
+            ? a.item
+            : null;
+
+        PhysicalItem itemB =
+            b != null
+            ? b.item
+            : null;
+
         int depthA =
-            GetChainDepth(a);
+            GetChainDepth(itemA);
 
         int depthB =
-            GetChainDepth(b);
+            GetChainDepth(itemB);
 
         return depthB.CompareTo(
             depthA
@@ -140,15 +252,59 @@ public class WorkstationInputConsumer :
         return node.GetDepth();
     }
 
-    void ConsumeOnePhysicalItem(
-        PhysicalItem item)
+    void ConsumeEntryAmount(
+        ConsumeEntry entry)
     {
-        if (item == null)
+        if (entry == null ||
+            entry.item == null)
+        {
+            return;
+        }
+
+        PhysicalItem item =
+            entry.item;
+
+        int consumeAmount =
+            Mathf.Max(
+                0,
+                entry.amount
+            );
+
+        if (consumeAmount <= 0)
             return;
 
+        int currentAmount =
+            Mathf.Max(
+                0,
+                item.Amount
+            );
+
+        int remainingAmount =
+            currentAmount - consumeAmount;
+
+        if (remainingAmount > 0)
+        {
+            Log(
+                "Consume partial: " +
+                item.ItemName +
+                " -" +
+                consumeAmount +
+                " | remain: " +
+                remainingAmount
+            );
+
+            item.SetAmount(
+                remainingAmount
+            );
+
+            return;
+        }
+
         Log(
-            "Consume object: " +
-            item.ItemName
+            "Consume full object: " +
+            item.ItemName +
+            " x" +
+            currentAmount
         );
 
         DestroyPhysicalItemSafely(

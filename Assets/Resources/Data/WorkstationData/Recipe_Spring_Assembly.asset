@@ -35,5 +35,13 @@ MonoBehaviour:
     minVelocity: 0.1
     maxVelocity: 8
     stepCooldown: 0.2
+  - toolType: 1
+    contactMode: 2
+    requiresHold: 0
+    holdDuration: 0
+    useVelocityCheck: 1
+    minVelocity: 0.1
+    maxVelocity: 8
+    stepCooldown: 0.2
   baseQuality: 80
   baseDefect: 0

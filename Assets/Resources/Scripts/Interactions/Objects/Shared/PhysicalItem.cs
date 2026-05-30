@@ -94,6 +94,25 @@ public class PhysicalItem :
 
         ApplyMass();
     }
+    public bool CanReduceAmount(
+        int value)
+    {
+        if (value <= 0)
+            return false;
+
+        return amount - value >= 1;
+    }
+
+    public void AddAmount(
+        int value)
+    {
+        if (value <= 0)
+            return;
+
+        amount += value;
+
+        ApplyMass();
+    }
 
     public void SetItemData(
         ItemData data)

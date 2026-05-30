@@ -46,10 +46,14 @@ public class SnapStackMode
             return false;
         }
 
-        if (!socket.TryRegisterStack())
+        int incomingAmount =
+            GetIncomingAmount(snap);
+
+        if (!socket.CanRegisterStack(
+            incomingAmount))
         {
             socket.Log(
-                "Stack failed: register failed"
+                "Stack failed: not enough stack capacity"
             );
 
             return false;
@@ -59,24 +63,24 @@ public class SnapStackMode
         {
             return SnapFirstItem(
                 snap,
-                anchor
+                anchor,
+                incomingAmount
             );
         }
 
         return StackAdditionalItem(
-            snap
+            snap,
+            incomingAmount
         );
     }
 
     bool SnapFirstItem(
         SnappableObject snap,
-        SnapAnchor anchor)
+        SnapAnchor anchor,
+        int incomingAmount)
     {
-        socket.SetCurrent(snap);
-
-        socket.SetCurrentItem(
-            snap.GetComponent<PhysicalItem>()
-        );
+        PhysicalItem item =
+            snap.GetComponent<PhysicalItem>();
 
         snap.Snap(
             socket,
@@ -85,8 +89,6 @@ public class SnapStackMode
 
         if (!snap.IsSnapped)
         {
-            socket.Clear(snap);
-
             socket.Log(
                 "Stack failed: first item snap failed"
             );
@@ -94,39 +96,107 @@ public class SnapStackMode
             return false;
         }
 
+        if (!socket.TryRegisterStack(
+            incomingAmount))
+        {
+            snap.ForceUnsnapWithoutSocketClear();
+
+            socket.Log(
+                "Stack failed: register first item failed"
+            );
+
+            return false;
+        }
+
+        socket.SetCurrent(snap);
+
+        socket.SetCurrentItem(item);
+
+        if (item != null)
+        {
+            item.SetAmount(
+                socket.CurrentStack
+            );
+        }
+
         socket.Log(
-            "Stack first item snapped"
+            "Stack first item snapped | amount: " +
+            socket.CurrentStack
         );
 
         return true;
     }
 
     bool StackAdditionalItem(
+        SnappableObject snap,
+        int incomingAmount)
+    {
+        PhysicalItem incomingItem =
+            snap.GetComponent<PhysicalItem>();
+
+        PhysicalItem currentItem =
+            socket.CurrentItem;
+
+        if (incomingItem == null ||
+            currentItem == null)
+        {
+            socket.Log(
+                "Stack failed: missing PhysicalItem"
+            );
+
+            return false;
+        }
+
+        if (!currentItem.IsSameItem(
+            incomingItem))
+        {
+            socket.Log(
+                "Stack failed: item mismatch"
+            );
+
+            return false;
+        }
+
+        if (!socket.TryRegisterStack(
+            incomingAmount))
+        {
+            socket.Log(
+                "Stack failed: register additional item failed"
+            );
+
+            return false;
+        }
+
+        currentItem.SetAmount(
+            socket.CurrentStack
+        );
+
+        snap.gameObject.SetActive(false);
+
+        Object.Destroy(
+            snap.gameObject
+        );
+
+        socket.Log(
+            "Stack additional item merged | amount: " +
+            socket.CurrentStack
+        );
+
+        return true;
+    }
+
+    int GetIncomingAmount(
         SnappableObject snap)
     {
         PhysicalItem item =
             snap.GetComponent<PhysicalItem>();
 
         if (item == null)
-        {
-            socket.Log(
-                "Stack failed: no PhysicalItem"
-            );
+            return 1;
 
-            return false;
-        }
-
-        socket.Log(
-            "Stack additional item: " +
-            item.ItemName
+        return Mathf.Max(
+            1,
+            item.Amount
         );
-
-        Object.Destroy(
-            snap.gameObject
-        );
-
-        return true;
     }
-
-    
 }

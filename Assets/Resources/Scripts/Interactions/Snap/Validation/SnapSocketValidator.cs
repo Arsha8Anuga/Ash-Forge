@@ -91,20 +91,34 @@ public class SnapSocketValidator
             return false;
         }
 
-        if (!socket.UseChainMode &&
-            socket.CurrentStack >= socket.MaxStack)
+        if (!socket.UseChainMode)
         {
-            return false;
-        }
+            int incomingAmount =
+                GetIncomingAmount(snap);
 
-        if (!socket.UseChainMode &&
-            socket.Host != null &&
-            !socket.Host.CanAdd(1))
-        {
-            return false;
+            if (!socket.CanRegisterStack(
+                incomingAmount))
+            {
+                return false;
+            }
         }
 
         return true;
+    }
+
+    int GetIncomingAmount(
+        SnappableObject snap)
+    {
+        PhysicalItem item =
+            snap.GetComponent<PhysicalItem>();
+
+        if (item == null)
+            return 1;
+
+        return Mathf.Max(
+            1,
+            item.Amount
+        );
     }
 
     public bool IsAnchorCloseEnough(
