@@ -9,6 +9,12 @@ public class AreaItemScanner :
     private BoxCollider scanCollider;
 
     [SerializeField]
+    private bool ignoreHeldItems = true;
+
+    [SerializeField]
+    private bool ignoreWorkbenchTools = true;
+
+    [SerializeField]
     private LayerMask detectionMask = ~0;
 
     [SerializeField]
@@ -61,6 +67,9 @@ public class AreaItemScanner :
             if (!item.IsValid)
                 continue;
 
+            if (ShouldIgnore(item))
+                continue;
+
             unique.Add(item);
         }
 
@@ -76,6 +85,39 @@ public class AreaItemScanner :
         }
 
         return result;
+    }
+
+    bool ShouldIgnore(
+        PhysicalItem item)
+    {
+        if (item == null)
+            return true;
+
+        if (!item.IsValid)
+            return true;
+
+        if (ignoreWorkbenchTools)
+        {
+            WorkstationTool tool =
+                item.GetComponent<WorkstationTool>();
+
+            if (tool != null)
+                return true;
+        }
+
+        if (ignoreHeldItems)
+        {
+            IGrabbable grabbable =
+                item.GetComponent<IGrabbable>();
+
+            if (grabbable != null &&
+                grabbable.IsHeld)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void OnDrawGizmosSelected()

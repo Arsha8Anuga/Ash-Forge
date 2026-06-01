@@ -31,6 +31,36 @@ public static class ItemReverseCalculator
             return result;
         }
 
+        if (mode == WorkstationReversibility.Full)
+        {
+            BuildFullReverse(
+                item,
+                origins,
+                result
+            );
+
+            return result;
+        }
+
+        if (mode == WorkstationReversibility.Partial)
+        {
+            BuildPartialReverse(
+                item,
+                origins,
+                result
+            );
+
+            return result;
+        }
+
+        return result;
+    }
+
+    static void BuildFullReverse(
+        PhysicalItem item,
+        IReadOnlyList<ItemOriginRecord> origins,
+        List<StoredItemStack> result)
+    {
         foreach (ItemOriginRecord origin
             in origins)
         {
@@ -40,34 +70,148 @@ public static class ItemReverseCalculator
                 continue;
             }
 
-            int amount =
-                GetReturnAmount(
-                    item,
-                    origin,
-                    mode
-                );
+            AddReverseStack(
+                item,
+                origin,
+                origin.Amount,
+                WorkstationReversibility.Full,
+                result
+            );
+        }
+    }
 
-            if (amount <= 0)
+    static void BuildPartialReverse(
+        PhysicalItem item,
+        IReadOnlyList<ItemOriginRecord> origins,
+        List<StoredItemStack> result)
+    {
+        int totalUnits =
+            CountOriginUnits(
+                origins
+            );
+
+        if (totalUnits <= 0)
+            return;
+
+        float ratio =
+            item.ItemData != null
+            ? item.ItemData.partialReverseReturnRatio
+            : 0.5f;
+
+        ratio =
+            Mathf.Clamp01(
+                ratio
+            );
+
+        int unitsToReturn =
+            Mathf.RoundToInt(
+                totalUnits * ratio
+            );
+
+        unitsToReturn =
+            Mathf.Clamp(
+                unitsToReturn,
+                0,
+                totalUnits
+            );
+
+        if (unitsToReturn <= 0)
+            return;
+
+        int remaining =
+            unitsToReturn;
+
+        foreach (ItemOriginRecord origin
+            in origins)
+        {
+            if (remaining <= 0)
+                break;
+
+            if (origin == null ||
+                origin.ItemData == null)
+            {
                 continue;
+            }
 
-            ItemInstanceData instance =
-                BuildReverseInstance(
-                    item,
-                    origin,
-                    mode
+            int amount =
+                Mathf.Min(
+                    origin.Amount,
+                    remaining
                 );
 
-            StoredItemStack stack =
-                new StoredItemStack(
-                    origin.ItemData,
-                    amount,
-                    instance
-                );
+            AddReverseStack(
+                item,
+                origin,
+                amount,
+                WorkstationReversibility.Partial,
+                result
+            );
 
-            result.Add(stack);
+            remaining -= amount;
+        }
+    }
+
+    static int CountOriginUnits(
+        IReadOnlyList<ItemOriginRecord> origins)
+    {
+        if (origins == null)
+            return 0;
+
+        int total = 0;
+
+        foreach (ItemOriginRecord origin
+            in origins)
+        {
+            if (origin == null ||
+                origin.ItemData == null)
+            {
+                continue;
+            }
+
+            total +=
+                Mathf.Max(
+                    0,
+                    origin.Amount
+                );
         }
 
-        return result;
+        return total;
+    }
+
+    static void AddReverseStack(
+        PhysicalItem item,
+        ItemOriginRecord origin,
+        int amount,
+        WorkstationReversibility mode,
+        List<StoredItemStack> result)
+    {
+        if (origin == null ||
+            origin.ItemData == null ||
+            result == null)
+        {
+            return;
+        }
+
+        if (amount <= 0)
+            return;
+
+        ItemInstanceData instance =
+            BuildReverseInstance(
+                item,
+                origin,
+                mode
+            );
+
+        StoredItemStack stack =
+            new StoredItemStack(
+                origin.ItemData,
+                amount,
+                instance
+            );
+
+        result.Add(
+            stack
+        );
     }
 
     static int GetReturnAmount(

@@ -27,6 +27,17 @@ public class WorkstationBase :
     [SerializeField]
     private WorkstationExecutionBase execution;
 
+    [Header("Interruption")]
+    [SerializeField]
+    private bool requireActiveItemsRemainInScanner = true;
+
+    [SerializeField]
+    private bool interruptOnScannerCompositionChanged = true;
+
+    [SerializeField]
+    private string inputChangedMessage =
+        "Process failed: input area changed";
+
     [Header("UI")]
     [SerializeField]
     private WorkstationUI ui;
@@ -60,7 +71,13 @@ public class WorkstationBase :
         ResolveReferences();
 
         if (ui != null)
+        {
             ui.Bind(this);
+
+            ui.SetOutputSpawner(
+                outputSpawner
+            );
+        }
     }
 
     void Update()
@@ -180,7 +197,10 @@ public class WorkstationBase :
 
         if (ui != null)
         {
-            ui.ShowSelection(matches);
+            ui.ShowSelection(
+                matches,
+                detected
+            );
             return;
         }
 
@@ -309,7 +329,8 @@ public class WorkstationBase :
 
         activeSnapshot =
             new WorkstationInputSnapshot(
-                activeItems
+                activeItems,
+                GetDetectedItems()
             );
 
         Log(
@@ -323,7 +344,8 @@ public class WorkstationBase :
         {
             ui.ShowProcessing(
                 activeRecipe,
-                0
+                0,
+                activeItems
             );
         }
 
@@ -346,11 +368,21 @@ public class WorkstationBase :
         if (activeSnapshot == null)
             return;
 
-        if (activeSnapshot.IsStillValid())
+        List<PhysicalItem> currentDetected =
+            GetDetectedItems();
+
+        bool valid =
+            activeSnapshot.IsStillValid(
+                currentDetected,
+                requireActiveItemsRemainInScanner,
+                interruptOnScannerCompositionChanged
+            );
+
+        if (valid)
             return;
 
         CancelWork(
-            "Process failed: input changed"
+            inputChangedMessage
         );
     }
 
@@ -366,14 +398,26 @@ public class WorkstationBase :
         if (!isBusy)
             return;
 
-        if (activeSnapshot != null &&
-            !activeSnapshot.IsStillValid())
+        if (activeSnapshot != null)
         {
-            CancelWork(
-                "Process failed: input changed"
-            );
+            List<PhysicalItem> currentDetected =
+                GetDetectedItems();
 
-            return;
+            bool valid =
+                activeSnapshot.IsStillValid(
+                    currentDetected,
+                    requireActiveItemsRemainInScanner,
+                    interruptOnScannerCompositionChanged
+                );
+
+            if (!valid)
+            {
+                CancelWork(
+                    inputChangedMessage
+                );
+
+                return;
+            }
         }
 
         SpawnOutputs();

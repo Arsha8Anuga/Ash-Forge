@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1b94f89621c7384fbd80c158ebdd1e4, type: 3}
+  m_Name: IWP_Receiver_WPD
+  m_EditorClassIdentifier: 
+  partId: IWP_Receiver_WPD
+  partName: IWP Receiver
+  role: 0
+  description: 
+  outputItemData: {fileID: 11400000, guid: 82b7e2e2bb0d7a947a3bf088664d49de, type: 2}
+  statContribution:
+    damage: 45
+    accuracy: 45
+    stability: 50
+    durability: 70
+    fireRate: 40
+    handling: 45
+    reliability: 70
+    defect: 0
+  qualityInfluence: 1
+  defectInfluence: 1
+  requiredForBasicWeapon: 1

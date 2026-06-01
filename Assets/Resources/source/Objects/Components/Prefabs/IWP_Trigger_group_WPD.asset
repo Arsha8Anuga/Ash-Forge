@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1b94f89621c7384fbd80c158ebdd1e4, type: 3}
+  m_Name: IWP_Trigger_group_WPD
+  m_EditorClassIdentifier: 
+  partId: IWP_Trigger_Group_WPD
+  partName: Trigger Group
+  role: 2
+  description: 
+  outputItemData: {fileID: 11400000, guid: 77697b45450687b4ba62c59943894c37, type: 2}
+  statContribution:
+    damage: 35
+    accuracy: 50
+    stability: 45
+    durability: 45
+    fireRate: 70
+    handling: 65
+    reliability: 55
+    defect: 0
+  qualityInfluence: 1
+  defectInfluence: 1
+  requiredForBasicWeapon: 0

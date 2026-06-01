@@ -109,6 +109,9 @@ public class WorkstationOutputSpawner :
         WorkstationRecipeData recipe,
         List<PhysicalItem> inputItems)
     {
+        if (recipe == null)
+            return new List<StoredItemStack>();
+
         if (outputBuilder != null &&
             outputBuilder.CanBuildOutputs(
                 recipe,
@@ -120,11 +123,77 @@ public class WorkstationOutputSpawner :
             );
         }
 
-        return BuildDefaultOutputs(recipe);
+        if (recipe.recipeType ==
+            WorkstationRecipeType.Disassembly)
+        {
+            return BuildDisassemblyOutputs(
+                recipe,
+                inputItems
+            );
+        }
+
+        return BuildDefaultOutputs(
+            recipe,
+            inputItems
+        );
+    }
+
+    List<StoredItemStack> BuildDisassemblyOutputs(
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
+    {
+        List<StoredItemStack> result =
+            new List<StoredItemStack>();
+
+        if (recipe == null)
+            return result;
+
+        if (recipe.reversibility ==
+            WorkstationReversibility.Full ||
+            recipe.reversibility ==
+            WorkstationReversibility.Partial)
+        {
+            List<StoredItemStack> reverseOutputs =
+                BuildGenericReverseOutputs(
+                    recipe,
+                    inputItems
+                );
+
+            if (reverseOutputs != null)
+            {
+                result.AddRange(
+                    reverseOutputs
+                );
+            }
+        }
+
+        if (recipe.reversibility ==
+            WorkstationReversibility.Partial ||
+            recipe.reversibility ==
+            WorkstationReversibility.None ||
+            recipe.reversibility ==
+            WorkstationReversibility.Irreversible)
+        {
+            List<StoredItemStack> manualOutputs =
+                BuildDefaultOutputs(
+                    recipe,
+                    inputItems
+                );
+
+            if (manualOutputs != null)
+            {
+                result.AddRange(
+                    manualOutputs
+                );
+            }
+        }
+
+        return result;
     }
 
     List<StoredItemStack> BuildDefaultOutputs(
-        WorkstationRecipeData recipe)
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
     {
         List<StoredItemStack> result =
             new List<StoredItemStack>();
@@ -144,20 +213,93 @@ public class WorkstationOutputSpawner :
                 continue;
             }
 
+            ItemInstanceData instance =
+                BuildOutputInstance(
+                    output.itemData,
+                    recipe,
+                    inputItems
+                );
+
             StoredItemStack stack =
                 new StoredItemStack(
                     output.itemData,
                     output.amount,
-                    output.itemData.CreateInstance()
+                    instance
                 );
 
-            result.Add(stack);
+            result.Add(
+                stack
+            );
         }
 
         return result;
     }
 
-        void RouteOutput(
+    List<StoredItemStack> BuildGenericReverseOutputs(
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
+    {
+        List<StoredItemStack> result =
+            new List<StoredItemStack>();
+
+        if (recipe == null)
+            return result;
+
+        if (!recipe.CanReverse)
+            return result;
+
+        if (inputItems == null)
+            return result;
+
+        foreach (PhysicalItem item
+            in inputItems)
+        {
+            if (item == null)
+                continue;
+
+            List<StoredItemStack> reversed =
+                ItemReverseCalculator.Reverse(
+                    item,
+                    recipe.reversibility
+                );
+
+            if (reversed == null)
+                continue;
+
+            result.AddRange(
+                reversed
+            );
+        }
+
+        return result;
+    }
+
+    ItemInstanceData BuildOutputInstance(
+        ItemData outputItemData,
+        WorkstationRecipeData recipe,
+        List<PhysicalItem> inputItems)
+    {
+        if (outputItemData == null)
+            return null;
+
+        if (recipe == null)
+            return outputItemData.CreateInstance();
+
+        if (inputItems == null ||
+            inputItems.Count == 0)
+        {
+            return outputItemData.CreateInstance();
+        }
+
+        return ItemQualityCalculator
+            .CreateOutputInstance(
+                inputItems,
+                recipe.baseQuality,
+                recipe.baseDefect
+            );
+    }
+
+    void RouteOutput(
         StoredItemStack stack,
         WorkstationRecipeData recipe,
         List<PhysicalItem> inputItems)
@@ -200,13 +342,8 @@ public class WorkstationOutputSpawner :
     WorkstationOutputRoute FindRoute(
         ItemData itemData)
     {
-        if (routes == null ||
-            routes.Length == 0)
-        {
+        if (routes == null)
             return null;
-        }
-
-        WorkstationOutputRoute fallback = null;
 
         foreach (WorkstationOutputRoute route
             in routes)
@@ -214,19 +351,91 @@ public class WorkstationOutputSpawner :
             if (route == null)
                 continue;
 
-            if (route.itemData == null)
-            {
-                if (fallback == null)
-                    fallback = route;
-
-                continue;
-            }
-
             if (route.Matches(itemData))
                 return route;
         }
 
-        return fallback;
+        return null;
+    }
+
+    public string GetRouteSummary(
+        WorkstationRecipeData recipe)
+    {
+        if (recipe == null)
+            return "Output Route:\n- recipe missing";
+
+        if (recipe.outputs == null ||
+            recipe.outputs.Length == 0)
+        {
+            return "Output Route:\n- no manual output";
+        }
+
+        string text =
+            "Output Route:\n";
+
+        foreach (WorkstationOutput output
+            in recipe.outputs)
+        {
+            if (output == null ||
+                output.itemData == null)
+            {
+                continue;
+            }
+
+            WorkstationOutputRoute route =
+                FindRoute(
+                    output.itemData
+                );
+
+            text +=
+                "- " +
+                output.itemData.itemName +
+                ": " +
+                BuildRouteLine(route) +
+                "\n";
+        }
+
+        return text;
+    }
+
+    string BuildRouteLine(
+        WorkstationOutputRoute route)
+    {
+        if (route == null)
+            return "Spawn Area";
+
+        if (route.target ==
+            WorkstationOutputTarget.SpawnArea)
+        {
+            return "Spawn Area";
+        }
+
+        if (route.target ==
+            WorkstationOutputTarget.Storage)
+        {
+            IStackStorageInput stackStorage =
+                route.GetStorage();
+
+            if (stackStorage == null)
+                return "Storage missing";
+
+            IItemStorage itemStorage =
+                route.storageBehaviour
+                as IItemStorage;
+
+            if (itemStorage != null)
+            {
+                return
+                    "Storage " +
+                    itemStorage.CurrentCount +
+                    " / " +
+                    itemStorage.Capacity;
+            }
+
+            return "Storage";
+        }
+
+        return route.target.ToString();
     }
 
     bool TrySendToStorage(

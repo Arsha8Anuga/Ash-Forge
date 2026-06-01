@@ -149,6 +149,15 @@ public class StorageOutputSpawner :
             );
         }
 
+        WeaponPartInstanceHolder partHolder =
+            obj.GetComponent<WeaponPartInstanceHolder>();
+
+        if (partHolder != null)
+        {
+            partHolder.BuildInstance();
+        }
+
+
         if (hand != null)
         {
             TryGiveToHand(

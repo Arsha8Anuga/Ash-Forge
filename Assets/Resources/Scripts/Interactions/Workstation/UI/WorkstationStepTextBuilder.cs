@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 public static class WorkstationTextBuilder
 {
     public static string BuildRecipeHeader(
@@ -135,6 +138,130 @@ public static class WorkstationTextBuilder
                 prefix +
                 step.toolType +
                 done +
+                "\n";
+        }
+
+        return text;
+    }
+
+    public static string BuildRecipeDetailText(
+        WorkstationRecipeData recipe)
+    {
+        if (recipe == null)
+            return "Recipe Detail:\n- none";
+
+        string text =
+            "Recipe Detail:\n";
+
+        text +=
+            "Type: " +
+            recipe.recipeType +
+            "\n";
+
+        text +=
+            "Reversibility: " +
+            recipe.reversibility +
+            "\n";
+
+        text +=
+            "Process Time: " +
+            recipe.processTime.ToString("0.##") +
+            "s\n\n";
+
+        text +=
+            BuildRequirementText(recipe) +
+            "\n";
+
+        text +=
+            BuildOutputText(recipe) +
+            "\n";
+
+        text +=
+            BuildRuleText(recipe) +
+            "\n";
+
+        return text;
+    }
+
+    public static string BuildDetectedItemsText(
+        List<PhysicalItem> items)
+    {
+        return BuildItemListText(
+            "Detected Items",
+            items
+        );
+    }
+
+    public static string BuildSelectedItemsText(
+        List<PhysicalItem> items)
+    {
+        return BuildItemListText(
+            "Selected Items",
+            items
+        );
+    }
+
+    static string BuildItemListText(
+        string title,
+        List<PhysicalItem> items)
+    {
+        if (items == null ||
+            items.Count == 0)
+        {
+            return title + ":\n- none";
+        }
+
+        Dictionary<ItemData, int> counts =
+            new Dictionary<ItemData, int>();
+
+        foreach (PhysicalItem item
+            in items)
+        {
+            if (item == null)
+                continue;
+
+            if (!item.IsValid)
+                continue;
+
+            ItemData data =
+                item.ItemData;
+
+            if (data == null)
+                continue;
+
+            if (!counts.ContainsKey(data))
+            {
+                counts.Add(
+                    data,
+                    0
+                );
+            }
+
+            counts[data] +=
+                Mathf.Max(
+                    1,
+                    item.Amount
+                );
+        }
+
+        if (counts.Count == 0)
+            return title + ":\n- none";
+
+        string text =
+            title +
+            ":\n";
+
+        foreach (KeyValuePair<ItemData, int> pair
+            in counts)
+        {
+            if (pair.Key == null)
+                continue;
+
+            text +=
+                "- " +
+                pair.Key.itemName +
+                " x" +
+                pair.Value +
                 "\n";
         }
 

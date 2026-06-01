@@ -44,6 +44,18 @@ public class WorkstationUI :
     [SerializeField]
     private TMP_Text messageText;
 
+    [SerializeField]
+    private TMP_Text detectedItemsText;
+
+    [SerializeField]
+    private TMP_Text selectedItemsText;
+
+    [SerializeField]
+    private TMP_Text recipeDetailText;
+
+    [SerializeField]
+    private TMP_Text routeText;
+
     [Header("Timing")]
     [SerializeField]
     private float defaultMessageDuration = 1.25f;
@@ -53,6 +65,14 @@ public class WorkstationUI :
     private bool debugLog;
 
     private WorkstationBase workstation;
+
+    private WorkstationOutputSpawner outputSpawner;
+
+    private List<PhysicalItem> currentDetectedItems =
+        new List<PhysicalItem>();
+
+    private List<PhysicalItem> currentSelectedItems =
+        new List<PhysicalItem>();
 
     private readonly List<WorkstationRecipeCard> cards =
         new List<WorkstationRecipeCard>();
@@ -81,13 +101,36 @@ public class WorkstationUI :
     {
         this.workstation = workstation;
     }
+    
+    public void SetOutputSpawner(
+        WorkstationOutputSpawner outputSpawner)
+    {
+        this.outputSpawner = outputSpawner;
+    }
 
     public void ShowSelection(
         List<WorkstationRecipeData> recipes)
     {
+        ShowSelection(
+            recipes,
+            currentDetectedItems
+        );
+    }
+
+    public void ShowSelection(
+        List<WorkstationRecipeData> recipes,
+        List<PhysicalItem> detectedItems)
+    {
         ClearCards();
 
         selecting = false;
+
+        currentDetectedItems =
+            CloneItems(
+                detectedItems
+            );
+
+        currentSelectedItems.Clear();
 
         previousState = currentState;
         currentState = WorkstationUIState.Selection;
@@ -100,6 +143,41 @@ public class WorkstationUI :
             message: false
         );
 
+        if (titleText != null)
+        {
+            titleText.text =
+                "Select Recipe";
+        }
+
+        if (detectedItemsText != null)
+        {
+            detectedItemsText.text =
+                WorkstationTextBuilder
+                .BuildDetectedItemsText(
+                    currentDetectedItems
+                );
+        }
+
+        if (selectedItemsText != null)
+        {
+            selectedItemsText.text =
+                "";
+        }
+
+        if (recipeDetailText != null)
+        {
+            recipeDetailText.text =
+                BuildRecipeListText(
+                    recipes
+                );
+        }
+
+        if (routeText != null)
+        {
+            routeText.text =
+                "";
+        }
+
         if (recipes == null)
             return;
 
@@ -108,6 +186,12 @@ public class WorkstationUI :
         {
             if (recipe == null)
                 continue;
+
+            if (cardPrefab == null ||
+                contentParent == null)
+            {
+                continue;
+            }
 
             WorkstationRecipeCard card =
                 Instantiate(
@@ -133,8 +217,25 @@ public class WorkstationUI :
         WorkstationRecipeData recipe,
         int stepIndex)
     {
+        ShowProcessing(
+            recipe,
+            stepIndex,
+            currentSelectedItems
+        );
+    }
+
+    public void ShowProcessing(
+        WorkstationRecipeData recipe,
+        int stepIndex,
+        List<PhysicalItem> selectedItems)
+    {
         currentRecipe = recipe;
         currentStepIndex = stepIndex;
+
+        currentSelectedItems =
+            CloneItems(
+                selectedItems
+            );
 
         previousState = currentState;
         currentState = WorkstationUIState.Processing;
@@ -156,6 +257,31 @@ public class WorkstationUI :
                 .BuildRecipeHeader(recipe);
         }
 
+        if (recipeDetailText != null)
+        {
+            recipeDetailText.text =
+                WorkstationTextBuilder
+                .BuildRecipeDetailText(recipe);
+        }
+
+        if (detectedItemsText != null)
+        {
+            detectedItemsText.text =
+                WorkstationTextBuilder
+                .BuildDetectedItemsText(
+                    currentDetectedItems
+                );
+        }
+
+        if (selectedItemsText != null)
+        {
+            selectedItemsText.text =
+                WorkstationTextBuilder
+                .BuildSelectedItemsText(
+                    currentSelectedItems
+                );
+        }
+
         if (stepText != null)
         {
             stepText.text =
@@ -166,16 +292,24 @@ public class WorkstationUI :
                 );
         }
 
+        if (routeText != null)
+        {
+            routeText.text =
+                outputSpawner != null
+                ? outputSpawner.GetRouteSummary(recipe)
+                : "Output Route:\n- output spawner missing";
+        }
+
         Log("Show processing");
     }
-
     public void ShowStep(
         WorkstationRecipeData recipe,
         int stepIndex)
     {
         ShowProcessing(
             recipe,
-            stepIndex
+            stepIndex,
+            currentSelectedItems
         );
     }
 
@@ -388,6 +522,56 @@ public class WorkstationUI :
         }
 
         cards.Clear();
+    }
+
+    List<PhysicalItem> CloneItems(
+        List<PhysicalItem> source)
+    {
+        List<PhysicalItem> result =
+            new List<PhysicalItem>();
+
+        if (source == null)
+            return result;
+
+        foreach (PhysicalItem item
+            in source)
+        {
+            if (item == null)
+                continue;
+
+            result.Add(item);
+        }
+
+        return result;
+    }
+
+    string BuildRecipeListText(
+        List<WorkstationRecipeData> recipes)
+    {
+        if (recipes == null ||
+            recipes.Count == 0)
+        {
+            return "Available Recipes:\n- none";
+        }
+
+        string text =
+            "Available Recipes:\n";
+
+        foreach (WorkstationRecipeData recipe
+            in recipes)
+        {
+            if (recipe == null)
+                continue;
+
+            text +=
+                "- " +
+                recipe.recipeName +
+                " [" +
+                recipe.recipeType +
+                "]\n";
+        }
+
+        return text;
     }
 
     void Log(
