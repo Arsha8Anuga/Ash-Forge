@@ -870,6 +870,9 @@ MonoBehaviour:
   matcher: {fileID: 136884705}
   outputSpawner: {fileID: 136884710}
   execution: {fileID: 136884711}
+  requireActiveItemsRemainInScanner: 1
+  interruptOnScannerCompositionChanged: 1
+  inputChangedMessage: 'Process failed: input area changed'
   ui: {fileID: 1334871586}
   activateCooldown: 0.25
   debugLog: 1
@@ -5013,6 +5016,9 @@ MonoBehaviour:
   matcher: {fileID: 1127268587}
   outputSpawner: {fileID: 0}
   execution: {fileID: 1127268588}
+  requireActiveItemsRemainInScanner: 1
+  interruptOnScannerCompositionChanged: 1
+  inputChangedMessage: 'Process failed: input area changed'
   ui: {fileID: 269905005}
   activateCooldown: 0.25
   debugLog: 0
@@ -7588,6 +7594,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scanCollider: {fileID: 1605233096}
+  ignoreHeldItems: 1
+  ignoreWorkbenchTools: 1
   detectionMask:
     serializedVersion: 2
     m_Bits: 10624
@@ -8509,6 +8517,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scanCollider: {fileID: 2021085826}
+  ignoreHeldItems: 1
+  ignoreWorkbenchTools: 1
   detectionMask:
     serializedVersion: 2
     m_Bits: 10624
