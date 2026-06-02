@@ -208,6 +208,31 @@ public class SnapSocket : MonoBehaviour
         return stackMode.TrySnap(snap);
     }
 
+    public bool TryUnsnapCurrent()
+    {
+        if (current == null)
+        {
+            Log("TryUnsnapCurrent failed: current null");
+            return false;
+        }
+
+        SnappableObject snap =
+            current;
+
+        snap.Unsnap();
+
+        bool success =
+            snap == null ||
+            !snap.IsSnapped;
+
+        if (!success)
+        {
+            Log("TryUnsnapCurrent failed: object still snapped");
+        }
+
+        return success;
+    }
+
     public bool CanAccept(
         SnappableObject snap)
     {

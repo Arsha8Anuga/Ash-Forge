@@ -33,9 +33,9 @@ MonoBehaviour:
   toolSteps:
   - toolType: 1
     contactMode: 2
-    requiresHold: 0
-    holdDuration: 0
-    useVelocityCheck: 1
+    requiresHold: 1
+    holdDuration: 1
+    useVelocityCheck: 0
     minVelocity: 0.1
     maxVelocity: 5
     stepCooldown: 0

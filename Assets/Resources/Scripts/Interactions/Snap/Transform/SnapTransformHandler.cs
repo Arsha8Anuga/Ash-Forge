@@ -53,25 +53,38 @@ public class SnapTransformHandler
         SnapSocket socket,
         SnapAnchor anchor)
     {
+        if (socket == null)
+            return;
+
+        if (anchor == null)
+            return;
+
         Transform socketPoint =
             socket.Point;
 
-        Transform anchorTransform =
-            anchor.transform;
+        Transform anchorPoint =
+            anchor.Point;
+
+        if (socketPoint == null)
+            return;
+
+        if (anchorPoint == null)
+            return;
 
         Quaternion anchorLocalRotation =
             Quaternion.Inverse(owner.rotation) *
-            anchorTransform.rotation;
+            anchorPoint.rotation;
 
         Quaternion targetRotation =
             socketPoint.rotation *
             Quaternion.Inverse(anchorLocalRotation);
 
-        owner.rotation = targetRotation;
+        owner.rotation =
+            targetRotation;
 
         Vector3 correction =
             socketPoint.position -
-            anchorTransform.position;
+            anchorPoint.position;
 
         owner.position +=
             correction +

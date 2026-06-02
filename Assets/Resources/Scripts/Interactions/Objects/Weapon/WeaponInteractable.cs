@@ -11,6 +11,16 @@ public class WeaponInteractable :
     [SerializeField]
     private WeaponLayerHandler layerHandler;
 
+    [Header("Fire Rule")]
+    [SerializeField]
+    private bool requireAttachModeToFire = true;
+
+    [SerializeField]
+    private bool requireSameHoldingHandToFire = true;
+
+    [SerializeField]
+    private bool debugFireBlock;
+
     [SerializeField]
     private WeaponShooter shooter;
 
@@ -129,15 +139,16 @@ public class WeaponInteractable :
         if (!IsHeld)
             return;
 
-        if (currentMode != GrabMode.Attach)
-            return;
+        if (currentMode ==
+            GrabMode.Attach)
+        {
+            if (attachFollower == null)
+                return;
 
-        if (attachFollower == null)
-            return;
-
-        attachFollower.Tick(
-            currentHand
-        );
+            attachFollower.Tick(
+                currentHand
+            );
+        }
     }
 
     void BeginPhysicsMode()
@@ -181,11 +192,6 @@ public class WeaponInteractable :
 
     void BeginAttachMode()
     {
-        RefreshRigidbody();
-
-        if (rb == null)
-            return;
-
         isAttached = true;
 
         ResetPhysics();
@@ -194,8 +200,14 @@ public class WeaponInteractable :
 
         rb.useGravity = false;
 
-        rb.interpolation =
-            RigidbodyInterpolation.None;
+        rb.interpolation = RigidbodyInterpolation.None;
+
+        if (attachFollower != null)
+        {
+            attachFollower.Begin(
+                currentHand
+            );
+        }
 
         if (layerHandler != null)
         {
@@ -207,14 +219,14 @@ public class WeaponInteractable :
     {
         isAttached = false;
 
-        RefreshRigidbody();
-
-        if (rb != null)
+        if (attachFollower != null)
         {
-            rb.isKinematic = false;
-
-            rb.useGravity = true;
+            attachFollower.End();
         }
+
+        rb.isKinematic = false;
+
+        rb.useGravity = true;
 
         if (layerHandler != null)
         {
@@ -225,21 +237,69 @@ public class WeaponInteractable :
     public void Activate(
         XRHandInteractor hand)
     {
-        if (shooter == null)
-        {
-            ResolveReferences();
-        }
-
-        if (shooter == null)
-        {
-            Debug.LogWarning(
-                "[WeaponInteractable] Cannot activate. WeaponShooter is missing.",
-                this
-            );
-
+        if (!CanFireFromHand(hand))
             return;
-        }
+
+        if (shooter == null)
+            return;
 
         shooter.Fire();
+    }
+
+    bool CanFireFromHand(
+        XRHandInteractor hand)
+    {
+        if (hand == null)
+        {
+            LogFireBlock(
+                "blocked: hand null"
+            );
+
+            return false;
+        }
+
+        if (!IsHeld)
+        {
+            LogFireBlock(
+                "blocked: weapon is not held"
+            );
+
+            return false;
+        }
+
+        if (requireSameHoldingHandToFire &&
+            currentHand != hand)
+        {
+            LogFireBlock(
+                "blocked: different hand"
+            );
+
+            return false;
+        }
+
+        if (requireAttachModeToFire &&
+            currentMode != GrabMode.Attach)
+        {
+            LogFireBlock(
+                "blocked: weapon is not in attach mode"
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    void LogFireBlock(
+        string message)
+    {
+        if (!debugFireBlock)
+            return;
+
+        Debug.Log(
+            "[WeaponInteractable] Fire " +
+            message,
+            this
+        );
     }
 }

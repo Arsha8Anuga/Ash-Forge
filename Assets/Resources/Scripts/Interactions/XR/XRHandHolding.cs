@@ -174,10 +174,22 @@ public class XRHandHolding
         if (!hand.Input.TriggerDown)
             return;
 
-        if (hand.Input.GripHeld)
-            return;
-
         if (HeldObject != null)
+        {
+            IActivatable heldActivatable =
+                HeldObject as IActivatable;
+
+            if (heldActivatable != null)
+            {
+                heldActivatable.Activate(
+                    hand
+                );
+            }
+
+            return;
+        }
+
+        if (hand.Input.GripHeld)
             return;
 
         IActivatable activatable =
@@ -188,7 +200,6 @@ public class XRHandHolding
 
         activatable.Activate(hand);
     }
-
     void ClearDestroyedHeldObject()
     {
         if (HeldObject == null)

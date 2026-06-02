@@ -5,5 +5,7 @@ public enum ItemCategory
     Component,
     WeaponPart,
     Tool,
-    Weapon
+    Weapon,
+    Ammo,
+    Magazine
 }
