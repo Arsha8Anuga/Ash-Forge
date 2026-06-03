@@ -59,7 +59,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.072, z: 0.16234}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1251437295556651098}
   m_Father: {fileID: 6661844946947152993}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1726102084996189537
@@ -219,6 +220,7 @@ GameObject:
   - component: {fileID: 2012483928731870339}
   - component: {fileID: 2566250762867192231}
   - component: {fileID: 12319433093777214}
+  - component: {fileID: 4046881894278577634}
   - component: {fileID: 6190185414266739544}
   - component: {fileID: 2754793781871911993}
   - component: {fileID: 5991256268674181899}
@@ -228,6 +230,7 @@ GameObject:
   - component: {fileID: 5150157590852210734}
   - component: {fileID: 4886333577489948589}
   - component: {fileID: 7657712776005969985}
+  - component: {fileID: 1925322599400283532}
   m_Layer: 6
   m_Name: IW_Crude_Weapon
   m_TagString: Untagged
@@ -253,6 +256,7 @@ Transform:
   - {fileID: 4545632286298161381}
   - {fileID: 1537758793875820683}
   - {fileID: 7317785608308591641}
+  - {fileID: 4515269829677387369}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &2012483928731870339
@@ -324,6 +328,25 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &4046881894278577634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3376113358113124581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eaf3d879fe2ae3448403198e4a47b20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioSource: {fileID: 0}
+  fireClip: {fileID: 0}
+  dryFireClip: {fileID: 0}
+  magazineInsertClip: {fileID: 0}
+  magazineEjectClip: {fileID: 0}
+  randomizePitch: 1
+  pitchRange: {x: 0.96, y: 1.04}
 --- !u!114 &6190185414266739544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -392,10 +415,18 @@ MonoBehaviour:
   grabPoint: {fileID: 1537758793875820683}
   attachFollower: {fileID: 6178908454813261846}
   layerHandler: {fileID: 7789997153811894595}
+  shooter: {fileID: 3929063708746862079}
+  audioFeedback: {fileID: 4046881894278577634}
+  weaponEvents: {fileID: 0}
+  weaponHaptics: {fileID: 0}
+  magazineControllerRelease: {fileID: 1925322599400283532}
+  fireMode: 1
   requireAttachModeToFire: 1
   requireSameHoldingHandToFire: 1
   debugFireBlock: 0
-  shooter: {fileID: 3929063708746862079}
+  failedFireRepeatDelay: 0.22
+  requireTriggerReleaseAfterGrab: 1
+  blockFireDuringGripTransition: 1
   isAttached: 0
 --- !u!114 &7789997153811894595
 MonoBehaviour:
@@ -429,6 +460,7 @@ MonoBehaviour:
   weaponInstanceHolder: {fileID: 2754793781871911993}
   projectilePrefab: {fileID: 6502595714004946554, guid: 44e217c4984163e4e959cb1f505dfd86,
     type: 3}
+  projectilePool: {fileID: 0}
   requireMagazine: 1
   projectileLayerMask:
     serializedVersion: 2
@@ -465,6 +497,8 @@ MonoBehaviour:
   minProjectileLifetime: 0.5
   maxProjectileLifetime: 10
   recoil: {fileID: 7657712776005969985}
+  muzzleFlash: {fileID: 2355763675404296497}
+  shellEjector: {fileID: 3476656256458303269}
   debugLog: 1
 --- !u!114 &6178908454813261846
 MonoBehaviour:
@@ -479,7 +513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attachPoint: {fileID: 1537758793875820683}
-  recoil: {fileID: 0}
+  recoil: {fileID: 7657712776005969985}
 --- !u!114 &5150157590852210734
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -534,6 +568,24 @@ MonoBehaviour:
   positionRecoverySpeed: 14
   rotationRecoverySpeed: 12
   debugLog: 0
+--- !u!114 &1925322599400283532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3376113358113124581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a53c92666168d54280529b0f780fa57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weapon: {fileID: 5991256268674181899}
+  releaseButton: {fileID: 6576920374696061559}
+  requireAttachMode: 1
+  requireTriggerHeld: 1
+  requireLowerButtonDown: 1
+  debugLog: 0
 --- !u!1 &5295319137633267424
 GameObject:
   m_ObjectHideFlags: 0
@@ -559,12 +611,66 @@ Transform:
   m_GameObject: {fileID: 5295319137633267424}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.0073, z: -0.021}
+  m_LocalPosition: {x: 0, y: 0.0285, z: -0.021}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6661844946947152993}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5523496307342113957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4515269829677387369}
+  - component: {fileID: 3476656256458303269}
+  m_Layer: 6
+  m_Name: Shell Ejector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4515269829677387369
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5523496307342113957}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0.29404032, w: 0.955793}
+  m_LocalPosition: {x: 0.0157, y: 0.0763, z: 0.061}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6661844946947152993}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 34.2}
+--- !u!114 &3476656256458303269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5523496307342113957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f39d093bc71fd8408a09d12a6d954ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ejectPoint: {fileID: 4515269829677387369}
+  shellPrefab: {fileID: 2798377948934845415, guid: 4e67458c3eebb80498c370a98433a0de,
+    type: 3}
+  shellPool: {fileID: 0}
+  localEjectDirection: {x: 1, y: 0, z: 0}
+  ejectForce: 2
+  upwardForce: 0.35
+  torqueForce: 0.08
+  shellLifetime: 8
+  debugLog: 0
 --- !u!1 &8056867184809608417
 GameObject:
   m_ObjectHideFlags: 0
@@ -613,9 +719,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   socket: {fileID: 4081456630359533866}
+  weapon: {fileID: 0}
+  weaponEvents: {fileID: 0}
+  weaponHaptics: {fileID: 0}
   acceptedAmmoTypeId: crude_ammo
+  audioFeedback: {fileID: 0}
+  playInsertAudio: 1
+  playEjectAudio: 1
   ejectDirection: {fileID: 7818528165151247779}
-  ejectVelocity: 0.2
+  ejectVelocity: 0.7
   hideMagazineDuringEject: 1
   ejectInvisibleDuration: 0.08
   ignoreWeaponCollisionDuringEject: 1
@@ -623,6 +735,56 @@ MonoBehaviour:
   ejectStartOffset: 0.08
   ejectCollisionMode: 2
   debugLog: 1
+--- !u!1 &8260956392373003062
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1251437295556651098}
+  - component: {fileID: 2355763675404296497}
+  m_Layer: 6
+  m_Name: Muzzle Flash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1251437295556651098
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8260956392373003062}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4545632286298161381}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2355763675404296497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8260956392373003062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86d34e00f733f174ea2eab721415b4e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flashParticles: []
+  flashLight: {fileID: 0}
+  lightDuration: 0.035
+  flashPrefab: {fileID: 0}
+  flashPoint: {fileID: 1251437295556651098}
+  prefabLifetime: 0.08
 --- !u!1001 &3570327383627359047
 PrefabInstance:
   m_ObjectHideFlags: 0

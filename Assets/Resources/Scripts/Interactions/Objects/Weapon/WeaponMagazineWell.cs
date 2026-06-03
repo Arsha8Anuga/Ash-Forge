@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+
 public class WeaponMagazineWell :
     MonoBehaviour
 {
@@ -7,10 +8,30 @@ public class WeaponMagazineWell :
     [SerializeField]
     private SnapSocket socket;
 
+    [Header("Weapon")]
+    [SerializeField]
+    private WeaponInteractable weapon;
+
+    [SerializeField]
+    private WeaponEvents weaponEvents;
+
+    [SerializeField]
+    private WeaponHaptics weaponHaptics;
+
     [Header("Ammo")]
     [SerializeField]
     private string acceptedAmmoTypeId =
         "crude_ammo";
+
+    [Header("Audio")]
+    [SerializeField]
+    private WeaponAudio audioFeedback;
+
+    [SerializeField]
+    private bool playInsertAudio = true;
+
+    [SerializeField]
+    private bool playEjectAudio = true;
 
     [Header("Eject")]
     [SerializeField]
@@ -42,6 +63,8 @@ public class WeaponMagazineWell :
     [Header("Debug")]
     [SerializeField]
     private bool debugLog;
+
+    private WeaponMagazine lastMagazine;
 
     public WeaponMagazine CurrentMagazine
     {
@@ -80,16 +103,74 @@ public class WeaponMagazineWell :
 
     void Awake()
     {
+        ResolveReferences();
+
+        lastMagazine =
+            CurrentMagazine;
+    }
+
+    void Update()
+    {
+        WatchMagazineChange();
+    }
+
+    void ResolveReferences()
+    {
         if (socket == null)
         {
             socket =
                 GetComponent<SnapSocket>();
         }
 
+        if (weapon == null)
+        {
+            weapon =
+                GetComponentInParent
+                <WeaponInteractable>();
+        }
+
+        if (weaponEvents == null)
+        {
+            weaponEvents =
+                GetComponentInParent
+                <WeaponEvents>();
+        }
+
+        if (weaponHaptics == null)
+        {
+            weaponHaptics =
+                GetComponentInParent
+                <WeaponHaptics>();
+        }
+
         if (ejectDirection == null)
         {
             ejectDirection = transform;
         }
+
+        if (audioFeedback == null)
+        {
+            audioFeedback =
+                GetComponentInParent<WeaponAudio>();
+        }
+    }
+
+    void WatchMagazineChange()
+    {
+        WeaponMagazine current =
+            CurrentMagazine;
+
+        if (current == lastMagazine)
+            return;
+
+        if (current != null)
+        {
+            NotifyMagazineInserted(
+                current
+            );
+        }
+
+        lastMagazine = current;
     }
 
     public bool TryConsumeRound()
@@ -111,12 +192,17 @@ public class WeaponMagazineWell :
         if (!success)
         {
             Log("Cannot consume round.");
+            return false;
         }
 
-        return success;
+        NotifyAmmoChanged(
+            magazine
+        );
+
+        return true;
     }
 
-   public WeaponMagazine EjectMagazine()
+    public WeaponMagazine EjectMagazine()
     {
         if (socket == null)
         {
@@ -220,9 +306,97 @@ public class WeaponMagazineWell :
             Log("Eject warning: magazine has no Rigidbody after unsnap.");
         }
 
+        NotifyMagazineEjected(
+            magazine
+        );
+
+        lastMagazine = null;
+
         Log("Magazine ejected.");
 
         return magazine;
+    }
+
+    void NotifyMagazineInserted(
+        WeaponMagazine magazine)
+    {
+        if (playInsertAudio &&
+            audioFeedback != null)
+        {
+            audioFeedback.PlayMagazineInsert();
+        }
+
+        if (weaponHaptics != null)
+        {
+            weaponHaptics.PlayMagazineInserted(
+                ResolveCurrentHand()
+            );
+        }
+
+        if (weaponEvents != null)
+        {
+            weaponEvents.RaiseMagazineInserted(
+                magazine
+            );
+
+            NotifyAmmoChanged(
+                magazine
+            );
+        }
+
+        Log("Magazine inserted.");
+    }
+
+    void NotifyMagazineEjected(
+        WeaponMagazine magazine)
+    {
+        if (playEjectAudio &&
+            audioFeedback != null)
+        {
+            audioFeedback.PlayMagazineEject();
+        }
+
+        if (weaponHaptics != null)
+        {
+            weaponHaptics.PlayMagazineEjected(
+                ResolveCurrentHand()
+            );
+        }
+
+        if (weaponEvents != null)
+        {
+            weaponEvents.RaiseMagazineEjected(
+                magazine
+            );
+
+            weaponEvents.RaiseAmmoChanged(
+                0,
+                0
+            );
+        }
+    }
+
+    void NotifyAmmoChanged(
+        WeaponMagazine magazine)
+    {
+        if (weaponEvents == null ||
+            magazine == null)
+        {
+            return;
+        }
+
+        weaponEvents.RaiseAmmoChanged(
+            magazine.CurrentAmmo,
+            magazine.MaxAmmo
+        );
+    }
+
+    XRHandInteractor ResolveCurrentHand()
+    {
+        if (weapon == null)
+            return null;
+
+        return weapon.CurrentHand;
     }
 
     IEnumerator TemporarilyHideMagazine(

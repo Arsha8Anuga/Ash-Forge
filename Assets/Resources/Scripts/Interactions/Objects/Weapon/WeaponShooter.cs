@@ -18,6 +18,9 @@ public class WeaponShooter :
     private GameObject projectilePrefab;
 
     [SerializeField]
+    private GameObjectPool projectilePool;
+
+    [SerializeField]
     private bool requireMagazine = true;
 
     [SerializeField]
@@ -125,6 +128,13 @@ public class WeaponShooter :
     [SerializeField]
     private WeaponRecoil recoil;
 
+    [Header("Feedback")]
+    [SerializeField]
+    private WeaponMuzzleFlash muzzleFlash;
+
+    [SerializeField]
+    private WeaponShellEjector shellEjector;
+
     [Header("Debug")]
     [SerializeField]
     private bool debugLog = true;
@@ -160,18 +170,44 @@ public class WeaponShooter :
             recoil =
                 GetComponent<WeaponRecoil>();
         }
+
+        if (muzzleFlash == null)
+        {
+            muzzleFlash =
+                GetComponentInChildren
+                <WeaponMuzzleFlash>();
+        }
+
+        if (shellEjector == null)
+        {
+            shellEjector =
+                GetComponentInChildren
+                <WeaponShellEjector>();
+        }
     }
 
-    public void Fire()
+    public WeaponFireResult Fire()
     {
-        if (!CanStartFire())
-            return;
+        WeaponFireResult startResult =
+            CanStartFire();
+
+        if (startResult !=
+            WeaponFireResult.None)
+        {
+            return startResult;
+        }
 
         ShotProfile shot =
             BuildShotProfile();
 
-        if (!TryConsumeAmmo())
-            return;
+        WeaponFireResult ammoResult =
+            TryConsumeAmmo();
+
+        if (ammoResult !=
+            WeaponFireResult.None)
+        {
+            return ammoResult;
+        }
 
         nextFireTime =
             Time.time +
@@ -182,6 +218,8 @@ public class WeaponShooter :
         );
 
         ApplyRecoil();
+
+        PlayShotFeedback();
 
         Log(
             "Fired | Ammo: " +
@@ -195,6 +233,8 @@ public class WeaponShooter :
             " | Spread: " +
             shot.spreadAngle.ToString("0.0")
         );
+
+        return WeaponFireResult.Fired;
     }
 
     void ApplyRecoil()
@@ -212,12 +252,25 @@ public class WeaponShooter :
         );
     }
 
-    bool CanStartFire()
+    void PlayShotFeedback()
+    {
+        if (muzzleFlash != null)
+        {
+            muzzleFlash.Play();
+        }
+
+        if (shellEjector != null)
+        {
+            shellEjector.Eject();
+        }
+    }
+
+    WeaponFireResult CanStartFire()
     {
         if (muzzlePoint == null)
         {
             Log("Cannot fire: muzzle missing.");
-            return false;
+            return WeaponFireResult.MissingMuzzle;
         }
 
         if (IsCoolingDown)
@@ -228,27 +281,27 @@ public class WeaponShooter :
                 .ToString("0.00")
             );
 
-            return false;
+            return WeaponFireResult.Cooldown;
         }
 
-        return true;
+        return WeaponFireResult.None;
     }
 
-    bool TryConsumeAmmo()
+    WeaponFireResult TryConsumeAmmo()
     {
         if (!requireMagazine)
-            return true;
+            return WeaponFireResult.None;
 
         if (magazineWell == null)
         {
             Log("Cannot fire: magazine well missing.");
-            return false;
+            return WeaponFireResult.MissingMagazineWell;
         }
 
         if (!magazineWell.HasMagazine)
         {
             Log("Cannot fire: no magazine.");
-            return false;
+            return WeaponFireResult.NoMagazine;
         }
 
         bool consumed =
@@ -257,10 +310,10 @@ public class WeaponShooter :
         if (!consumed)
         {
             Log("Cannot fire: magazine empty or incompatible.");
-            return false;
+            return WeaponFireResult.EmptyOrIncompatible;
         }
 
-        return true;
+        return WeaponFireResult.None;
     }
 
     void SpawnProjectile(
@@ -292,11 +345,16 @@ public class WeaponShooter :
             );
 
         GameObject projectileObject =
-            Instantiate(
-                projectilePrefab,
+            SpawnProjectileObject(
                 muzzlePoint.position,
                 rotation
             );
+
+        if (projectileObject == null)
+        {
+            Log("Projectile spawn failed.");
+            return;
+        }
 
         WeaponProjectile projectile =
             projectileObject.GetComponent
@@ -308,7 +366,8 @@ public class WeaponShooter :
                 shot.damage,
                 shot.range,
                 gameObject,
-                shot.lifetime
+                shot.lifetime,
+                projectileLayerMask
             );
         }
 
@@ -335,6 +394,29 @@ public class WeaponShooter :
             shot.velocity;
 
         rb.WakeUp();
+    }
+
+    GameObject SpawnProjectileObject(
+        Vector3 position,
+        Quaternion rotation)
+    {
+        if (projectilePool != null)
+        {
+            GameObject pooled =
+                projectilePool.Get(
+                    position,
+                    rotation
+                );
+
+            if (pooled != null)
+                return pooled;
+        }
+
+        return GameObjectPool.Spawn(
+            projectilePrefab,
+            position,
+            rotation
+        );
     }
 
     Vector3 ApplySpread(

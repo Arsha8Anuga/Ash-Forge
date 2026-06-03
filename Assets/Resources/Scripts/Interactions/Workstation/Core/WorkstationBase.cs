@@ -275,26 +275,7 @@ public class WorkstationBase :
         ))
         {
             Log(
-                "Recipe rejected by workstation rule: " +
-                recipe.recipeName
-            );
-
-            if (ui != null)
-            {
-                ui.ShowFailed(
-                    "Recipe rule failed"
-                );
-            }
-
-            return;
-        }
-
-              if (!CanStartRecipe(
-            recipe,
-            selected))
-        {
-            Log(
-                "Recipe rejected by validation: " +
+                "Recipe rejected by workstation validation: " +
                 recipe.recipeName
             );
 
@@ -307,6 +288,11 @@ public class WorkstationBase :
 
             return;
         }
+
+        BeginProcess(
+            recipe,
+            selected
+        );
 
         BeginProcess(
             recipe,
