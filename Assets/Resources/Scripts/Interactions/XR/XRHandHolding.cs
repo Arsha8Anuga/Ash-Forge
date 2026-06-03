@@ -25,11 +25,11 @@ public class XRHandHolding
 
     void HandleInput()
     {
+        HandleAttachGrab();
+
         HandleActivate();
 
         HandlePhysicsGrab();
-
-        HandleAttachGrab();
     }
 
     void HandlePhysicsGrab()
@@ -171,6 +171,9 @@ public class XRHandHolding
 
     void HandleActivate()
     {
+        if (IsAttachToggleInput())
+            return;
+
         if (!hand.Input.TriggerDown)
             return;
 
@@ -200,6 +203,13 @@ public class XRHandHolding
 
         activatable.Activate(hand);
     }
+
+    bool IsAttachToggleInput()
+    {
+        return hand.Input.GripDown &&
+            hand.Input.TriggerHeld;
+    }
+
     void ClearDestroyedHeldObject()
     {
         if (HeldObject == null)

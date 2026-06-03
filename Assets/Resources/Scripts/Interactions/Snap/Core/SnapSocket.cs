@@ -398,23 +398,26 @@ public class SnapSocket : MonoBehaviour
         RemoveStackAmount(1);
     }
 
-    public void RemoveStackAmount(
+    public bool RemoveStackAmount(
         int amount)
     {
         if (useChainMode)
-            return;
+            return false;
 
         if (amount <= 0)
-            return;
+            return false;
 
         if (currentStack <= 0)
-            return;
+            return false;
 
         int removed =
             Mathf.Min(
                 amount,
                 currentStack
             );
+
+        if (removed <= 0)
+            return false;
 
         currentStack -= removed;
 
@@ -432,8 +435,9 @@ public class SnapSocket : MonoBehaviour
         {
             current.Unsnap();
         }
-    }
 
+        return true;
+    }
     public void Log(
         string message)
     {

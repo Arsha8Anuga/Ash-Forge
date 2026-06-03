@@ -9,8 +9,13 @@ public class XRHandInteractor : MonoBehaviour
 
     public InputActionProperty trigger;
 
+    public InputActionProperty lowerButton;
+
     [Header("Ray")]
     public XRRayInteractor ray;
+
+    [Header("Haptics")]
+    public XRBaseController controller;
 
     [Header("Points")]
     public Transform gravityPoint;
@@ -30,11 +35,31 @@ public class XRHandInteractor : MonoBehaviour
 
     void Awake()
     {
+        if (controller == null)
+        {
+            controller =
+                GetComponentInParent
+                <XRBaseController>();
+        }
+
         Input = new XRHandInput(this);
 
         Targeting = new XRHandTargeting(this);
 
         Holding = new XRHandHolding(this);
+    }
+
+    public void SendHaptic(
+        float amplitude,
+        float duration)
+    {
+        if (controller == null)
+            return;
+
+        controller.SendHapticImpulse(
+            Mathf.Clamp01(amplitude),
+            Mathf.Max(0f, duration)
+        );
     }
 
     void Update()

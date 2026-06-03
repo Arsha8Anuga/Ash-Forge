@@ -273,8 +273,13 @@ public class WorkstationInputConsumer :
         if (consumeAmount <= 0)
             return;
 
+        SnapSocket stackSocket =
+            GetStackSocket(item);
+
         int currentAmount =
-            Mathf.Max(
+            stackSocket != null
+            ? stackSocket.CurrentStack
+            : Mathf.Max(
                 0,
                 item.Amount
             );
@@ -293,6 +298,20 @@ public class WorkstationInputConsumer :
                 remainingAmount
             );
 
+            if (stackSocket != null)
+            {
+                if (!stackSocket.RemoveStackAmount(
+                    consumeAmount))
+                {
+                    Log(
+                        "Consume failed: could not reduce snapped stack for " +
+                        item.ItemName
+                    );
+                }
+
+                return;
+            }
+
             item.SetAmount(
                 remainingAmount
             );
@@ -310,6 +329,39 @@ public class WorkstationInputConsumer :
         DestroyPhysicalItemSafely(
             item
         );
+    }
+
+    SnapSocket GetStackSocket(
+        PhysicalItem item)
+    {
+        if (item == null)
+            return null;
+
+        SnappableObject snap =
+            item.GetComponent<SnappableObject>();
+
+        if (snap == null ||
+            !snap.IsSnapped)
+        {
+            return null;
+        }
+
+        SnapSocket socket =
+            snap.CurrentSocket;
+
+        if (socket == null)
+            return null;
+
+        if (socket.UseChainMode)
+            return null;
+
+        if (socket.CurrentItem != item)
+            return null;
+
+        if (socket.CurrentStack <= 0)
+            return null;
+
+        return socket;
     }
 
     void DestroyPhysicalItemSafely(
