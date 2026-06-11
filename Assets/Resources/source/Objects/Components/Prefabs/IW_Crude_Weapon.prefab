@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 1717005094270905626}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.072, z: 0.16234}
+  m_LocalPosition: {x: 0, y: 0.066, z: 0.1705}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d261769523b35744784d7caf58a1d86c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemData: {fileID: 11400000, guid: 9b866dbf9f9615f488c1242c63e49457, type: 2}
+  itemData: {fileID: 0}
   amount: 1
   instanceData:
     quality:
@@ -423,7 +423,7 @@ MonoBehaviour:
   fireMode: 1
   requireAttachModeToFire: 1
   requireSameHoldingHandToFire: 1
-  debugFireBlock: 0
+  debugFireBlock: 1
   failedFireRepeatDelay: 0.22
   requireTriggerReleaseAfterGrab: 1
   blockFireDuringGripTransition: 1
@@ -470,21 +470,21 @@ MonoBehaviour:
   defectDamagePenalty: 0.08
   minDamage: 1
   maxDamage: 100
-  baseMuzzleVelocity: 200
+  baseMuzzleVelocity: 50
   damageVelocityFactor: 0.2
   accuracyVelocityFactor: 0.08
   defectVelocityPenalty: 0.08
-  minMuzzleVelocity: 10
-  maxMuzzleVelocity: 200
-  baseRange: 40
+  minMuzzleVelocity: 50
+  maxMuzzleVelocity: 355
+  baseRange: 70
   accuracyRangeFactor: 0.4
   durabilityRangeFactor: 0.15
   reliabilityRangeFactor: 0.15
   defectRangePenalty: 0.3
   minRange: 5
   maxRange: 150
-  maxSpreadAngle: 8
-  minSpreadAngle: 0.3
+  maxSpreadAngle: 1
+  minSpreadAngle: 0.1
   accuracySpreadReduction: 0.04
   stabilitySpreadReduction: 0.025
   defectSpreadPenalty: 0.05
@@ -493,9 +493,9 @@ MonoBehaviour:
   maxFireCooldown: 0.8
   handlingCooldownBonus: 0.001
   defectCooldownPenalty: 0.002
-  projectileLifetimePadding: 1
+  projectileLifetimePadding: 3
   minProjectileLifetime: 0.5
-  maxProjectileLifetime: 10
+  maxProjectileLifetime: 20
   recoil: {fileID: 7657712776005969985}
   muzzleFlash: {fileID: 2355763675404296497}
   shellEjector: {fileID: 3476656256458303269}
@@ -719,7 +719,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   socket: {fileID: 4081456630359533866}
-  weapon: {fileID: 0}
+  weapon: {fileID: 5991256268674181899}
   weaponEvents: {fileID: 0}
   weaponHaptics: {fileID: 0}
   acceptedAmmoTypeId: crude_ammo

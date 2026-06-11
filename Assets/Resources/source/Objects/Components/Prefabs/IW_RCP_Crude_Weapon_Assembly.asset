@@ -20,11 +20,11 @@ MonoBehaviour:
   isDestructive: 0
   ruleNote: 
   requirements:
-  - itemData: {fileID: 11400000, guid: 3a621003d2780b9439b7cf81cd7c52da, type: 2}
-    amount: 1
   - itemData: {fileID: 11400000, guid: 82b7e2e2bb0d7a947a3bf088664d49de, type: 2}
     amount: 1
   - itemData: {fileID: 11400000, guid: 77697b45450687b4ba62c59943894c37, type: 2}
+    amount: 1
+  - itemData: {fileID: 11400000, guid: c3680c5d8e99f934b93dc1aeb407e45c, type: 2}
     amount: 1
   outputs:
   - itemData: {fileID: 11400000, guid: 9b866dbf9f9615f488c1242c63e49457, type: 2}
@@ -33,7 +33,7 @@ MonoBehaviour:
   toolSteps:
   - toolType: 1
     contactMode: 2
-    requiresHold: 1
+    requiresHold: 0
     holdDuration: 1
     useVelocityCheck: 0
     minVelocity: 0.1

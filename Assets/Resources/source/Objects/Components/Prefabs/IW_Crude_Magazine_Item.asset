@@ -17,7 +17,7 @@ MonoBehaviour:
   category: 7
   description: Crude Magazine
   icon: {fileID: 0}
-  prefab: {fileID: 6236306512842452592, guid: 8d0b24414f829a24481a4067460b14b1, type: 3}
+  prefab: {fileID: 3627505578209595162, guid: 49a35087f16d76d489f48552be8c0e3d, type: 3}
   maxStack: 1
   mass: 0.3
   canStore: 1

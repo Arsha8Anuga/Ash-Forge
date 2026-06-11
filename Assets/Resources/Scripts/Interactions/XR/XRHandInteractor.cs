@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR;
 
 public class XRHandInteractor : MonoBehaviour
 {
@@ -26,6 +27,9 @@ public class XRHandInteractor : MonoBehaviour
 
     [Header("Validation")]
     public float maxHoldDistance = 3f;
+
+    [Header("XR Device")]
+    public XRNode handNode = XRNode.RightHand;
 
     public XRHandInput Input { get; private set; }
 
@@ -64,6 +68,8 @@ public class XRHandInteractor : MonoBehaviour
 
     void Update()
     {
+        Input.Tick();
+
         Targeting.Tick();
 
         Holding.Tick();

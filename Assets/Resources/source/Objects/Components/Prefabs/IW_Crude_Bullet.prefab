@@ -179,4 +179,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   destroyOnHit: 1
-  debugLog: 0
+  sendTargetHit: 1
+  fallbackSurfaceType: 0
+  useCastHitDetection: 1
+  castRadius: 0.02
+  hitLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  triggerInteraction: 1
+  impactSpawner: {fileID: 0}
+  findImpactSpawnerIfMissing: 1
+  debugLog: 1

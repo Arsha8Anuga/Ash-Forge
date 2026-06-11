@@ -17,7 +17,7 @@ MonoBehaviour:
   category: 5
   description: 
   icon: {fileID: 0}
-  prefab: {fileID: 3376113358113124581, guid: b92b6e12d93949c45afed426f187f14c, type: 3}
+  prefab: {fileID: 402668074239221704, guid: 01370931daa58c641b0b2c499880ba50, type: 3}
   maxStack: 1
   mass: 3
   canStore: 1

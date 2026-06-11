@@ -842,8 +842,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ammoTypeId: crude_ammo
-  maxAmmo: 10
-  currentAmmo: 10
+  maxAmmo: 20
+  currentAmmo: 20
 --- !u!1 &6308949938706559018
 GameObject:
   m_ObjectHideFlags: 0

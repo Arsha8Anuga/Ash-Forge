@@ -81,10 +81,29 @@ public class ImpactEffectSpawner :
         if (effect.DecalPrefab == null)
             return;
 
+        if (hitInfo.collider == null)
+            return;
+
+        BulletHoleReceiver receiver =
+            hitInfo.collider.GetComponentInParent<BulletHoleReceiver>();
+
+        if (receiver != null &&
+            !receiver.CanReceiveBulletHole())
+        {
+            Log("This object does not accept bullet holes: " +
+                hitInfo.collider.name);
+
+            return;
+        }
+
         Transform parent = null;
 
-        if (parentDecalToHitObject &&
-            hitInfo.collider != null)
+        if (receiver != null)
+        {
+            parent =
+                receiver.GetBulletHoleParent(hitInfo.collider);
+        }
+        else if (parentDecalToHitObject)
         {
             parent =
                 hitInfo.collider.transform;
@@ -94,9 +113,16 @@ public class ImpactEffectSpawner :
             Instantiate(
                 effect.DecalPrefab,
                 GetOffsetPoint(hitInfo),
-                GetImpactRotation(hitInfo),
-                parent
+                GetImpactRotation(hitInfo)
             );
+
+        if (parent != null)
+        {
+            decal.transform.SetParent(
+                parent,
+                true
+            );
+        }
 
         float lifetime =
             effect.DecalLifetime;

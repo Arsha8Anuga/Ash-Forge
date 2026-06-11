@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4c0289b0e444dd4dacd0522df6151f5, type: 3}
+  m_Name: IronBarRecipe
+  m_EditorClassIdentifier: 
+  recipeId: IronBarRecipe
+  recipeName: Iron Bar Recipe
+  description: 
+  recipeType: 0
+  reversibility: 0
+  isDestructive: 0
+  ruleNote: 
+  requirements:
+  - itemData: {fileID: 11400000, guid: 6b815e7abd4da0b4598f1e7cc5d6ab59, type: 2}
+    amount: 1
+  outputs:
+  - itemData: {fileID: 11400000, guid: c3680c5d8e99f934b93dc1aeb407e45c, type: 2}
+    amount: 1
+  processTime: 3
+  toolSteps: []
+  baseQuality: 80
+  baseDefect: 0

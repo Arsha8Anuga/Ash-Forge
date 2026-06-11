@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbf9ff549aeec4e4cab6577389a82479, type: 3}
+  m_Name: Default Effect
+  m_EditorClassIdentifier: 
+  defaultEffect:
+    surfaceType: 0
+    particlePrefab: {fileID: 0}
+    decalPrefab: {fileID: 836070764626302629, guid: ec2b5fbc3b6be8c44af5b3cacb9fa19b,
+      type: 3}
+    impactClips: []
+    volume: 1
+    decalLifetime: 20
+  effects: []

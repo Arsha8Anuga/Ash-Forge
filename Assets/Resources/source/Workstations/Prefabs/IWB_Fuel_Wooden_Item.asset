@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aa51153545789046be96adcfe5ad72c, type: 3}
+  m_Name: IWB_Fuel_Wooden_Item
+  m_EditorClassIdentifier: 
+  itemId: IWB_Fuel_Wooden_Item
+  itemName: IWB Fuel Wooden
+  category: 0
+  description: 
+  icon: {fileID: 0}
+  prefab: {fileID: 1210323732651073461, guid: 521c0d073eeda4541bbe7a52dd6427b5, type: 3}
+  maxStack: 3
+  mass: 0.5
+  canStore: 1
+  canBasket: 1
+  storageSize: 1
+  partialReverseReturnRatio: 0.5
+  partialReverseQualityLoss: 10
+  processTags: 
+  purity:
+    min: 40
+    max: 70
+  hardness:
+    min: 40
+    max: 70
+  durability:
+    min: 40
+    max: 70
+  conductivity:
+    min: 40
+    max: 70
+  stability:
+    min: 40
+    max: 70
+  defectResistance:
+    min: 40
+    max: 70
